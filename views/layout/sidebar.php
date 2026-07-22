@@ -1,3 +1,56 @@
+<?php
+// ---- Live sidebar badge counts (replaces the old hardcoded 84 / 6 / 3) ----
+// Scoped by role: Admin sees everything; Manager is limited to assigned sites.
+require_once __DIR__ . '/../../config/Database.php';
+
+$navCounts = ['attendance' => 0, 'leave' => 0, 'invoices' => 0];
+try {
+    $navDb   = Database::connect();
+    $isAdmin = isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1;
+    $siteIds = $isAdmin ? [] : ($_SESSION['assigned_site_ids'] ?? []);
+
+    // Managers with no assigned sites have nothing in scope -> all counts stay 0.
+    if ($isAdmin || !empty($siteIds)) {
+        $siteFilter = '';
+        $params = [];
+        if (!$isAdmin) {
+            $ph = implode(',', array_fill(0, count($siteIds), '?'));
+            $siteFilter = $ph; // reused per-query with the right column
+            $params = $siteIds;
+        }
+
+        // Active workers not yet marked for today's attendance
+        $sql = "SELECT COUNT(*) FROM workers w WHERE w.status = 'Active'
+                AND NOT EXISTS (SELECT 1 FROM attendance a WHERE a.worker_id = w.id AND a.attendance_date = CURRENT_DATE)";
+        if (!$isAdmin) { $sql .= " AND w.site_id IN ($siteFilter)"; }
+        $st = $navDb->prepare($sql); $st->execute($params);
+        $navCounts['attendance'] = (int) $st->fetchColumn();
+
+        // Pending leave requests awaiting review
+        $sql = "SELECT COUNT(*) FROM leave_requests lr JOIN workers w ON lr.worker_id = w.id WHERE lr.status = 'Pending'";
+        if (!$isAdmin) { $sql .= " AND w.site_id IN ($siteFilter)"; }
+        $st = $navDb->prepare($sql); $st->execute($params);
+        $navCounts['leave'] = (int) $st->fetchColumn();
+
+        // Invoices not yet paid
+        $sql = "SELECT COUNT(*) FROM invoices i JOIN billing b ON i.billing_id = b.id WHERE i.status <> 'Paid'";
+        if (!$isAdmin) { $sql .= " AND b.site_id IN ($siteFilter)"; }
+        $st = $navDb->prepare($sql); $st->execute($params);
+        $navCounts['invoices'] = (int) $st->fetchColumn();
+    }
+} catch (Throwable $e) {
+    // Never let a badge query break the layout; just show no badges.
+    $navCounts = ['attendance' => 0, 'leave' => 0, 'invoices' => 0];
+}
+
+// Logged-in user's initials for the top-right avatar (was hardcoded "RK").
+$navUserName = trim($_SESSION['user_name'] ?? '');
+$navInitials = 'U';
+if ($navUserName !== '') {
+    $parts = preg_split('/\s+/', $navUserName);
+    $navInitials = strtoupper(substr($parts[0], 0, 1) . (count($parts) > 1 ? substr(end($parts), 0, 1) : ''));
+}
+?>
 <div class="app">
 <!-- ============================================================ SIDEBAR -->
 <aside class="sidebar">
@@ -47,7 +100,7 @@
     <a href="/attendance" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'attendance') !== false && strpos($_SERVER['REQUEST_URI'], 'manager') === false ? 'active' : '' ?>">
       <svg class="nav-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
       Attendance
-      <span class="nav-badge">84</span>
+      <?php if($navCounts['attendance'] > 0): ?><span class="nav-badge" title="Workers not yet marked today"><?= $navCounts['attendance'] ?></span><?php endif; ?>
     </a>
     <?php if($_SESSION['role_id'] == 1): ?>
     <a href="/attendance/manager" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'attendance/manager') !== false ? 'active' : '' ?>">
@@ -64,7 +117,7 @@
     <a href="/leave" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'leave') !== false ? 'active' : '' ?>">
       <svg class="nav-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       Leave
-      <span class="nav-badge">6</span>
+      <?php if($navCounts['leave'] > 0): ?><span class="nav-badge" title="Pending leave requests"><?= $navCounts['leave'] ?></span><?php endif; ?>
     </a>
   </div>
 
@@ -81,7 +134,7 @@
     <a href="/invoices" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'invoices') !== false ? 'active' : '' ?>">
       <svg class="nav-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
       Invoices
-      <span class="nav-badge">3</span>
+      <?php if($navCounts['invoices'] > 0): ?><span class="nav-badge" title="Unpaid invoices"><?= $navCounts['invoices'] ?></span><?php endif; ?>
     </a>
     <a href="/financial" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'financial') !== false ? 'active' : '' ?>">
       <svg class="nav-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -130,7 +183,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
         <div class="notif-dot"></div>
       </div>
-      <div class="avatar" title="User Profile">RK</div>
+      <div class="avatar" title="<?= htmlspecialchars($navUserName ?: 'User Profile') ?>"><?= htmlspecialchars($navInitials) ?></div>
     </div>
   </header>
 

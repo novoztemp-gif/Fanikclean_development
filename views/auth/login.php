@@ -20,19 +20,39 @@
     <div style="color:green; margin-bottom: 15px;"><?= $_SESSION['success']; unset($_SESSION['success']); ?></div>
   <?php endif; ?>
 
+  <?php $selectedRole = ($_POST['role'] ?? $_SESSION['login_role'] ?? '1'); unset($_SESSION['login_role']); ?>
+
+  <div class="role-tabs" role="tablist" aria-label="Login as">
+    <button type="button" class="role-tab<?= $selectedRole == '1' ? ' active' : '' ?>" data-role="1">Admin</button>
+    <button type="button" class="role-tab<?= $selectedRole == '2' ? ' active' : '' ?>" data-role="2">Manager</button>
+  </div>
+
   <form method="POST" action="/login">
+    <input type="hidden" name="role" id="role" value="<?= htmlspecialchars($selectedRole) ?>">
     <div class="input-group">
       <input type="email" name="email" id="email" placeholder="Email" required>
     </div>
     <div class="input-group">
       <input type="password" name="password" id="password" placeholder="Password" required>
     </div>
-    <button type="submit">Login</button>
+    <button type="submit">Login as <span id="role-label"><?= $selectedRole == '2' ? 'Manager' : 'Admin' ?></span></button>
   </form>
 
-  <div class="link">
-    Don't have an account? <a href="/signup">Sign Up</a>
-  </div>
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll('.role-tab');
+      var roleInput = document.getElementById('role');
+      var roleLabel = document.getElementById('role-label');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          tabs.forEach(function (t) { t.classList.remove('active'); });
+          tab.classList.add('active');
+          roleInput.value = tab.dataset.role;
+          roleLabel.textContent = tab.textContent;
+        });
+      });
+    })();
+  </script>
 </div>
 
 </body>

@@ -2,8 +2,6 @@
 // Auth Routes
 $router->get('/login', 'AuthController', 'login');
 $router->post('/login', 'AuthController', 'authenticate');
-$router->get('/signup', 'AuthController', 'signup');
-$router->post('/signup', 'AuthController', 'register');
 $router->get('/logout', 'AuthController', 'logout');
 
 // Dashboard
