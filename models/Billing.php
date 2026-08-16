@@ -5,7 +5,16 @@ class Billing {
     private $db;
     public function __construct() { $this->db = Database::connect(); }
 
-    public function generateForDateRange($fromDate, $toDate, $clientId = null, $siteId = null) {
+    /**
+     * Generate billing for a date range.
+     * $allowedSiteIds: null = no restriction (admin). Array = restrict to these
+     * sites (manager scope); an empty array bills nothing.
+     */
+    public function generateForDateRange($fromDate, $toDate, $clientId = null, $siteId = null, $allowedSiteIds = null) {
+        // Manager scoped to zero sites -> nothing to bill.
+        if (is_array($allowedSiteIds) && empty($allowedSiteIds)) {
+            return true;
+        }
         $this->db->beginTransaction();
         try {
             $sql = "
@@ -33,7 +42,14 @@ class Billing {
                 $sql .= " AND s.id = :sid ";
                 $params['sid'] = $siteId;
             }
-            
+            // Manager scope: never bill outside the allowed sites, even if a
+            // client (or no site) was chosen.
+            if (is_array($allowedSiteIds)) {
+                $keys = [];
+                foreach ($allowedSiteIds as $i => $asid) { $keys[] = ":asid$i"; $params["asid$i"] = $asid; }
+                $sql .= " AND s.id IN (" . implode(',', $keys) . ") ";
+            }
+
             $sql .= " GROUP BY c.id, s.id, c.company_name, wc.default_rate ";
             
             $stmt = $this->db->prepare($sql);

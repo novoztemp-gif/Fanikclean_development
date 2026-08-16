@@ -199,8 +199,16 @@ if ($navUserName !== '') {
     <?php if(isset($_SESSION['toast'])): ?>
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                toast("<?= $_SESSION['toast']; ?>", "success");
+                toast(<?= json_encode($_SESSION['toast']) ?>, "success");
             });
         </script>
         <?php unset($_SESSION['toast']); ?>
+    <?php endif; ?>
+    <?php if(isset($_SESSION['error'])): ?>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                toast(<?= json_encode($_SESSION['error']) ?>, "error");
+            });
+        </script>
+        <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
