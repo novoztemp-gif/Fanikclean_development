@@ -35,6 +35,7 @@ class BillingController extends Controller {
 
             $scopeMsg = $clientId ? "for selected client" : "for all clients";
             $dateLabel = date('d M', strtotime($fromDate)) . ' – ' . date('d M Y', strtotime($toDate));
+            $this->logAudit('Billing', "Generated billing $scopeMsg ($dateLabel)");
             $_SESSION['toast'] = "Billing generated $scopeMsg ($dateLabel)";
             $this->redirect('/billing');
         }

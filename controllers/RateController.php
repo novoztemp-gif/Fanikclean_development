@@ -18,6 +18,7 @@ class RateController extends Controller {
             $db = Database::connect();
             $stmt = $db->prepare("UPDATE worker_categories SET default_rate = :rate WHERE id = :id");
             $stmt->execute(['rate' => $_POST['rate'], 'id' => $_POST['id']]);
+            $this->logAudit('Config', "Set category #{$_POST['id']} daily rate to " . $_POST['rate']);
             header('Location: /rates');
         }
     }

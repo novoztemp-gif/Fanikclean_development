@@ -36,6 +36,7 @@ class ClientController extends Controller {
                 'billing_cycle' => $_POST['billing_cycle'] ?? 'Monthly'
             ];
             $clientModel->create($data);
+            $this->logAudit('Clients', "Added client: " . $data['company_name']);
             $_SESSION['toast'] = "Client added successfully";
             $this->redirect('/clients');
         }

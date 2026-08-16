@@ -113,8 +113,16 @@ function openEditUserModal(u) {
     document.getElementById('edit-user-id').value = u.id;
     document.getElementById('edit-user-name').value = u.full_name;
     document.getElementById('edit-user-role').value = u.role_id;
-    document.getElementById('edit-user-site').value = u.site_id || '';
     document.getElementById('edit-user-status').value = u.status;
+
+    // Pre-select the manager's assigned sites in the multi-select.
+    var sitesSel = document.getElementById('edit-user-sites');
+    if (sitesSel) {
+        var assigned = (u.assigned_site_ids_csv || '').split(',').filter(Boolean);
+        Array.prototype.forEach.call(sitesSel.options, function (opt) {
+            opt.selected = assigned.indexOf(opt.value) !== -1;
+        });
+    }
     
     document.getElementById('edit-user-guardian_name').value = u.guardian_name || '';
     document.getElementById('edit-user-guardian_phone').value = u.guardian_phone || '';

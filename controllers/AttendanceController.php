@@ -85,6 +85,67 @@ class AttendanceController extends Controller {
         ]);
     }
 
+    /**
+     * Read-only monthly attendance register (muster roll): workers × days matrix.
+     * Month + optional site filter, role-scoped like index().
+     */
+    public function register() {
+        $this->checkAuth();
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) { $month = date('Y-m'); }
+        $filterSiteId = $_GET['site_id'] ?? null;
+
+        $db = Database::connect();
+
+        // Resolve the site scope for the current user (mirrors index()).
+        if ($this->isAdmin()) {
+            $sites = $db->query("SELECT id, name FROM sites ORDER BY name")->fetchAll();
+            $scopeSiteIds = null;
+        } else {
+            $userModel = new User();
+            $scopeSiteIds = $userModel->getAssignedSiteIds($_SESSION['user_id']);
+            $_SESSION['assigned_site_ids'] = $scopeSiteIds;
+            if (empty($scopeSiteIds)) {
+                $sites = [];
+            } else {
+                $ph = implode(',', array_fill(0, count($scopeSiteIds), '?'));
+                $stmt = $db->prepare("SELECT id, name FROM sites WHERE id IN ($ph) ORDER BY name");
+                $stmt->execute(array_values($scopeSiteIds));
+                $sites = $stmt->fetchAll();
+            }
+        }
+
+        $attModel = new Attendance();
+        $rows = $attModel->getMonthlyRegister($month, $scopeSiteIds, $filterSiteId);
+
+        $this->view('attendance/register', [
+            'pageTitle' => 'Attendance Register',
+            'rows' => $rows,
+            'sites' => $sites,
+            'month' => $month,
+            'selectedSiteId' => $filterSiteId
+        ]);
+    }
+
+    /**
+     * Read-only monthly register for manager attendance (managers × days matrix).
+     * Admin-only, mirrors register() but for the manager_attendance table.
+     */
+    public function managerRegister() {
+        $this->requireRole([1]);
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) { $month = date('Y-m'); }
+
+        $maModel = new ManagerAttendance();
+        $rows = $maModel->getMonthlyRegister($month);
+
+        $this->view('attendance/manager_register', [
+            'pageTitle' => 'Manager Attendance Register',
+            'rows' => $rows,
+            'month' => $month
+        ]);
+    }
+
     public function managerAttendance() {
         $this->requireRole([1]);
         $date = $_GET['date'] ?? date('Y-m-d');
@@ -146,6 +207,7 @@ class AttendanceController extends Controller {
             if ($savedRows === false) {
                 $_SESSION['error'] = "Failed to save attendance.";
             } else {
+                $this->logAudit('Attendance', "Saved worker attendance ($savedRows record" . ($savedRows == 1 ? '' : 's') . ")");
                 $_SESSION['toast'] = "Attendance saved ($savedRows record" . ($savedRows == 1 ? '' : 's') . ").";
             }
 
@@ -168,6 +230,7 @@ class AttendanceController extends Controller {
             if ($savedRows === false) {
                 $_SESSION['error'] = "Failed to update internal records";
             } else {
+                $this->logAudit('Attendance', "Saved manager attendance ($savedRows record" . ($savedRows == 1 ? '' : 's') . ")");
                 $_SESSION['toast'] = "Manager attendance saved ($savedRows record" . ($savedRows == 1 ? '' : 's') . ").";
             }
             $this->redirect('/attendance/manager?date=' . $date);

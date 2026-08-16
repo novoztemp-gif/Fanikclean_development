@@ -53,4 +53,25 @@ class Controller {
         // Deprecated: multi-site support uses getAssignedSiteIds()
         return $_SESSION['assigned_site_ids'][0] ?? null;
     }
+
+    /**
+     * Record an entry in audit_logs. Best-effort: a logging failure (bad
+     * connection, missing table, etc.) must never break the primary action,
+     * so everything is wrapped in try/catch. $module drives the colour badge
+     * on the Audit Log screen (Attendance/Billing/Config/Users/Workers/Leave/
+     * Financial/Auth/Clients/Sites/Payroll/Invoices); $action is free text.
+     */
+    protected function logAudit($module, $action) {
+        try {
+            $db = Database::connect();
+            $stmt = $db->prepare("INSERT INTO audit_logs (user_id, action, module) VALUES (:uid, :act, :mod)");
+            $stmt->execute([
+                'uid' => $_SESSION['user_id'] ?? null,
+                'act' => $action,
+                'mod' => $module
+            ]);
+        } catch (\Throwable $e) {
+            // Auditing is non-critical — swallow and continue.
+        }
+    }
 }

@@ -19,8 +19,11 @@ try {
             $params = $siteIds;
         }
 
-        // Active workers not yet marked for today's attendance
-        $sql = "SELECT COUNT(*) FROM workers w WHERE w.status = 'Active'
+        // Active workers not yet marked for today's attendance.
+        // Only workers assigned to a site can appear in / be marked on the grid,
+        // so unassigned (site_id IS NULL) workers are excluded — otherwise the
+        // badge could never reach zero.
+        $sql = "SELECT COUNT(*) FROM workers w WHERE w.status = 'Active' AND w.site_id IS NOT NULL
                 AND NOT EXISTS (SELECT 1 FROM attendance a WHERE a.worker_id = w.id AND a.attendance_date = CURRENT_DATE)";
         if (!$isAdmin) { $sql .= " AND w.site_id IN ($siteFilter)"; }
         $st = $navDb->prepare($sql); $st->execute($params);
@@ -97,10 +100,14 @@ if ($navUserName !== '') {
 
   <div class="nav-section">
     <div class="nav-sec-label">Operations</div>
-    <a href="/attendance" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'attendance') !== false && strpos($_SERVER['REQUEST_URI'], 'manager') === false ? 'active' : '' ?>">
+    <a href="/attendance" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'attendance') !== false && strpos($_SERVER['REQUEST_URI'], 'manager') === false && strpos($_SERVER['REQUEST_URI'], 'register') === false ? 'active' : '' ?>">
       <svg class="nav-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
       Attendance
       <?php if($navCounts['attendance'] > 0): ?><span class="nav-badge" title="Workers not yet marked today"><?= $navCounts['attendance'] ?></span><?php endif; ?>
+    </a>
+    <a href="/attendance/register" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'attendance/register') !== false ? 'active' : '' ?>">
+      <svg class="nav-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect width="4" height="7" x="7" y="10"/><rect width="4" height="12" x="15" y="5"/></svg>
+      Att. Register
     </a>
     <?php if($_SESSION['role_id'] == 1): ?>
     <a href="/attendance/manager" class="nav-item <?= strpos($_SERVER['REQUEST_URI'], 'attendance/manager') !== false ? 'active' : '' ?>">

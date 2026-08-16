@@ -8,11 +8,14 @@ class DashboardController extends Controller {
 
     public function index() {
         $dashboardModel = new Dashboard();
-        $insights = $dashboardModel->getDashboardInsights();
+        // Admin sees everything (null); managers are scoped to their assigned sites.
+        $siteScope = $this->isAdmin() ? null : $this->getAssignedSiteIds();
+        $insights = $dashboardModel->getDashboardInsights($siteScope);
 
         $this->view('dashboard/index', [
             'pageTitle' => 'Dashboard',
-            'insights' => $insights
+            'insights' => $insights,
+            'siteScope' => $siteScope
         ]);
     }
 }

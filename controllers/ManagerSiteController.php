@@ -33,6 +33,7 @@ class ManagerSiteController extends Controller {
             if ($userId) {
                 $userModel = new User();
                 if ($userModel->saveAssignments($userId, $siteIds)) {
+                    $this->logAudit('Users', "Updated site assignments for user #$userId (" . count($siteIds) . " site(s))");
                     $_SESSION['toast'] = "Site assignments updated successfully";
                 } else {
                     $_SESSION['error'] = "Failed to update assignments";

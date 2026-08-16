@@ -26,6 +26,7 @@ class InvoiceController extends Controller {
             if ($billingId) {
                 $invModel = new Invoice();
                 $invModel->generateFromBilling($billingId);
+                $this->logAudit('Invoices', "Generated invoice from billing #$billingId");
                 $_SESSION['toast'] = "Official Invoice Successfully Generated!";
             }
             $this->redirect('/invoices');
@@ -39,6 +40,7 @@ class InvoiceController extends Controller {
                 $db = Database::connect();
                 $stmt = $db->prepare("UPDATE invoices SET status = 'Paid', payment_date = CURRENT_DATE WHERE invoice_no = :inv");
                 $stmt->execute(['inv' => $invoice_no]);
+                $this->logAudit('Financial', "Marked invoice $invoice_no as Paid");
                 $_SESSION['toast'] = "Invoice Status Updated: Paid";
             }
             $this->redirect('/invoices');

@@ -29,7 +29,8 @@ class AuthController extends Controller {
         // Enforce the Admin/Manager separation: the chosen tab must match the account's role.
         if ($selectedRole && (int)$user['role_id'] !== $selectedRole) {
             $roleName = $selectedRole === 1 ? 'Admin' : 'Manager';
-            $_SESSION['error'] = "This account is not a $roleName. Please pick the correct login type.";
+            $article  = $selectedRole === 1 ? 'an' : 'a';
+            $_SESSION['error'] = "This account is not $article $roleName. Please pick the correct login type.";
             $this->redirect('/login');
             return;
         }
@@ -41,10 +42,12 @@ class AuthController extends Controller {
         // Load assigned site IDs for multi-site managers
         $_SESSION['assigned_site_ids'] = $userModel->getAssignedSiteIds($user['id']);
 
+        $this->logAudit('Auth', 'Signed in');
         $this->redirect('/dashboard');
     }
 
     public function logout() {
+        $this->logAudit('Auth', 'Signed out'); // log before the session is torn down
         session_destroy();
         $this->redirect('/login');
     }

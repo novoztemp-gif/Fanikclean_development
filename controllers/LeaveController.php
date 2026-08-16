@@ -18,6 +18,7 @@ class LeaveController extends Controller {
             $model = new Leave();
             $id = $_POST['id'];
             $model->updateStatus($id, 'Approved', $_SESSION['user_id']);
+            $this->logAudit('Leave', "Approved leave request #$id");
             header('Location: /leave');
         }
     }
@@ -27,6 +28,7 @@ class LeaveController extends Controller {
             $model = new Leave();
             $id = $_POST['id'];
             $model->updateStatus($id, 'Rejected', $_SESSION['user_id']);
+            $this->logAudit('Leave', "Rejected leave request #$id");
             header('Location: /leave');
         }
     }

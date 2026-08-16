@@ -59,10 +59,6 @@
                     <div class="fs24 fw8 c-teal"><?= number_format($insights['attendance_summary']['present']) ?></div>
                 </div>
                 <div>
-                    <div class="fs11 fw7 c-secondary mb4 text-upper">Absent</div>
-                    <div class="fs24 fw8 c-red"><?= number_format($insights['attendance_summary']['absent']) ?></div>
-                </div>
-                <div>
                     <div class="fs11 fw7 c-secondary mb4 text-upper">Half-Day</div>
                     <div class="fs24 fw8 c-amber"><?= number_format($insights['attendance_summary']['half_day']) ?></div>
                 </div>
@@ -119,7 +115,7 @@
             </div>
             <div style="padding: 10px 0;">
                 <?php 
-                    $dist = (new Dashboard())->getWorkerRoleDistribution();
+                    $dist = (new Dashboard())->getWorkerRoleDistribution($siteScope ?? null);
                     $total = array_sum(array_column($dist, 'count'));
                     foreach($dist as $d): 
                         $pct = $total > 0 ? ($d['count'] / $total * 100) : 0;
@@ -164,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Fetch data for the chart from current session/PHP 
     // In a real scenario, we might pass this via a separate API or JSON encoded var
-    const trendData = <?= json_encode((new Dashboard())->getAttendanceTrends()) ?>;
+    const trendData = <?= json_encode((new Dashboard())->getAttendanceTrends($siteScope ?? null)) ?>;
     
     new Chart(ctx, {
         type: 'bar',

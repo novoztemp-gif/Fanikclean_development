@@ -30,7 +30,17 @@
                 <?= htmlspecialchars($u['role_name']) ?>
               </span>
             </td>
-            <td><span class="chip"><?= htmlspecialchars($u['site_name'] ?? 'Universal Admin') ?></span></td>
+            <td>
+              <?php if ($u['role_id'] == 1): ?>
+                <span class="chip b-indigo" title="Admins have access to every site">All Sites (Admin)</span>
+              <?php elseif (!empty($u['assigned_site_count'])): ?>
+                <span class="chip b-green" title="<?= htmlspecialchars($u['assigned_site_names']) ?>">
+                  <?= (int)$u['assigned_site_count'] ?> site<?= $u['assigned_site_count'] > 1 ? 's' : '' ?>
+                </span>
+              <?php else: ?>
+                <span class="chip b-red" title="Assign sites at Site Assignments">No sites</span>
+              <?php endif; ?>
+            </td>
             <td>
               <span class="badge <?= $u['status'] == 'Active' ? 'b-green' : 'b-red' ?>">
                 <?= htmlspecialchars($u['status']) ?>
@@ -107,14 +117,13 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Assigned Site Scope (For Managers)</label>
-            <select class="form-input" name="site_id" id="edit-user-site">
-              <option value="">-- Universal (All Sites) --</option>
+            <label class="form-label">Assigned Sites (For Managers)</label>
+            <select class="form-input" name="site_ids[]" id="edit-user-sites" multiple size="6" style="height:auto;">
               <?php foreach($sites as $s): ?>
                 <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
               <?php endforeach; ?>
             </select>
-            <p class="fs11 c-secondary mt8">Note: Admins should generally remain as 'Universal' to access all platform features.</p>
+            <p class="fs11 c-secondary mt8">Hold Ctrl (Windows) or Cmd (Mac) to select multiple sites. Admins access all sites regardless of selection. Bulk-edit is also available on the Site Assignments screen.</p>
           </div>
         </div>
 
@@ -177,6 +186,16 @@
                 <?php endforeach; ?>
               </select>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assigned Sites (For Managers)</label>
+            <select class="form-input" name="site_ids[]" multiple size="6" style="height:auto;">
+              <?php foreach($sites as $s): ?>
+                <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <p class="fs11 c-secondary mt8">Optional now — you can also assign sites later from the Site Assignments screen. Admins access all sites regardless.</p>
           </div>
         </div>
 

@@ -103,6 +103,7 @@ class PayrollController extends Controller {
             $payrollModel = new Payroll();
             $payrollModel->generateMonthly($monthYear);
 
+            $this->logAudit('Payroll', "Computed & archived payroll for $monthYear");
             $_SESSION['toast'] = "Payroll computed & archived for $monthYear";
             $this->redirect('/payroll?month=' . $monthYear);
         }

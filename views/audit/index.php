@@ -37,7 +37,12 @@
                                         'Users' => 'b-red',
                                         'Workers' => 'b-purple',
                                         'Leave' => 'b-amber',
-                                        'Financial' => 'b-indigo'
+                                        'Financial' => 'b-indigo',
+                                        'Invoices' => 'b-indigo',
+                                        'Payroll' => 'b-green',
+                                        'Clients' => 'b-blue',
+                                        'Sites' => 'b-teal',
+                                        'Auth' => 'b-gray'
                                     ];
                                     $cls = $modMap[$log['module']] ?? 'b-gray';
                                 ?>

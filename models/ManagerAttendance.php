@@ -82,6 +82,49 @@ class ManagerAttendance {
             return false;
         }
     }
+    /**
+     * Read-only monthly register for manager attendance: one row per manager
+     * (role 2) with a day-indexed map of their recorded status + per-manager
+     * totals, for a managers × day matrix. Manager statuses have no Absent/OT.
+     *
+     * Each row: [ id, full_name, email,
+     *   days   => [ dayInt => ['status'=>, 'note'=>], ... ],
+     *   totals => ['p'=>,'off'=>,'h'=>,'pl'=>,'sd'=>] ]
+     */
+    public function getMonthlyRegister($monthYear) {
+        $managers = $this->db->query("
+            SELECT id, full_name, email FROM users WHERE role_id = 2 ORDER BY full_name ASC
+        ")->fetchAll();
+        if (empty($managers)) { return []; }
+
+        $ids = array_column($managers, 'id');
+        $ph = implode(',', array_fill(0, count($ids), '?'));
+        $aStmt = $this->db->prepare("
+            SELECT user_id, EXTRACT(DAY FROM attendance_date)::int AS day, status, note
+            FROM manager_attendance
+            WHERE user_id IN ($ph) AND TO_CHAR(attendance_date, 'YYYY-MM') = ?
+        ");
+        $aStmt->execute(array_merge(array_values($ids), [$monthYear]));
+
+        $byUser = [];
+        foreach ($aStmt->fetchAll() as $r) {
+            $byUser[$r['user_id']][(int)$r['day']] = ['status' => $r['status'], 'note' => $r['note']];
+        }
+
+        $out = [];
+        foreach ($managers as $m) {
+            $days = $byUser[$m['id']] ?? [];
+            $totals = ['p' => 0, 'off' => 0, 'h' => 0, 'pl' => 0, 'sd' => 0];
+            foreach ($days as $d) {
+                if (isset($totals[$d['status']])) { $totals[$d['status']]++; }
+            }
+            $m['days'] = $days;
+            $m['totals'] = $totals;
+            $out[] = $m;
+        }
+        return $out;
+    }
+
     public function getMonthlyPLCounts($monthYear) {
         $stmt = $this->db->prepare("
             SELECT user_id, COUNT(*) as count 

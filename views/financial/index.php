@@ -12,7 +12,7 @@
     ?>
     <div class="stats-grid mb24">
         <div class="stat-card">
-            <div class="stat-label">Total Billed</div>
+            <div class="stat-label">Total Invoiced</div>
             <div class="stat-val">₹<?= number_format($totalBilled, 2) ?></div>
         </div>
         <div class="stat-card">
@@ -36,7 +36,7 @@
                 <thead>
                     <tr>
                         <th>Client Organization</th>
-                        <th>Total Billed (Life-time)</th>
+                        <th>Total Invoiced (Life-time)</th>
                         <th>Total Collected</th>
                         <th>Outstanding Amount</th>
                         <th>Collection %</th>

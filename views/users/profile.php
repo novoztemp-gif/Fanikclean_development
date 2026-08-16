@@ -1,6 +1,15 @@
 <?php
 // Layout (header + sidebar + footer) is provided by Controller::view().
 $isAdmin = ((int)$user['role_id'] === 1);
+
+// Assigned scope from user_site_assignments (single source of truth).
+if ($isAdmin) {
+    $scopeLabel = 'All Sites (Admin)';
+} elseif (!empty($user['assigned_site_names'])) {
+    $scopeLabel = $user['assigned_site_names'];
+} else {
+    $scopeLabel = 'No sites assigned';
+}
 ?>
 
 <div class="panel active pf-wrap">
@@ -25,7 +34,7 @@ $isAdmin = ((int)$user['role_id'] === 1);
         <div class="pf-meta">
           <span class="pf-meta-item">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <strong><?= htmlspecialchars($user['site_name'] ?? 'Universal (All Sites)') ?></strong>
+            <strong><?= htmlspecialchars($scopeLabel) ?></strong>
           </span>
           <span class="pf-meta-item">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
@@ -67,7 +76,7 @@ $isAdmin = ((int)$user['role_id'] === 1);
         System Alignment
       </div>
       <div class="pf-row"><span class="pf-row-label">Platform Role</span><span class="pf-row-val"><?= htmlspecialchars($user['role_name']) ?></span></div>
-      <div class="pf-row"><span class="pf-row-label">Assigned Site Scope</span><span class="pf-row-val"><?= htmlspecialchars($user['site_name'] ?? 'Universal (All Sites)') ?></span></div>
+      <div class="pf-row"><span class="pf-row-label">Assigned Site Scope</span><span class="pf-row-val"><?= htmlspecialchars($scopeLabel) ?></span></div>
       <div class="pf-row"><span class="pf-row-label">Account Status</span><span class="pf-row-val"><?= $user['status'] === 'Active' ? 'Active / Permitted' : 'Suspended' ?></span></div>
       <div class="pf-row"><span class="pf-row-label">Last Login</span><span class="pf-row-val"><?= $user['last_login'] ? date('d M Y, h:i A', strtotime($user['last_login'])) : 'Never logged in' ?></span></div>
     </div>

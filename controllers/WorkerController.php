@@ -74,6 +74,7 @@ class WorkerController extends Controller {
             ];
             
             $workerModel->create($data);
+            $this->logAudit('Workers', "Added worker to roster: " . $data['full_name']);
             $_SESSION['toast'] = "Worker added to roster";
             $this->redirect('/workers');
         }
@@ -111,6 +112,7 @@ class WorkerController extends Controller {
             }
             
             $workerModel->update($id, $data);
+            $this->logAudit('Workers', "Updated worker #$id: " . $data['full_name']);
             $_SESSION['toast'] = "Worker profile updated";
             $this->redirect('/workers');
         }
@@ -156,7 +158,8 @@ class WorkerController extends Controller {
             $db = Database::connect();
             $stmt = $db->prepare("INSERT INTO worker_assets (worker_id, item_name, issue_date) VALUES (?, ?, ?)");
             $stmt->execute([$workerId, $item, $date]);
-            
+
+            $this->logAudit('Workers', "Issued asset '$item' to worker #$workerId");
             $_SESSION['toast'] = "Asset ($item) issued successfully";
             $this->redirect('/workers/profile?id=' . $workerId);
         }
@@ -170,7 +173,8 @@ class WorkerController extends Controller {
             $db = Database::connect();
             $stmt = $db->prepare("DELETE FROM worker_assets WHERE id = ?");
             $stmt->execute([$assetId]);
-            
+
+            $this->logAudit('Workers', "Removed asset #$assetId from worker #$workerId");
             $_SESSION['toast'] = "Record removed from history";
             $this->redirect('/workers/profile?id=' . $workerId);
         }
@@ -197,6 +201,7 @@ class WorkerController extends Controller {
             if (!empty($workerIds) && !empty($siteId)) {
                 $workerModel = new Worker();
                 if ($workerModel->bulkUpdateSite($workerIds, $siteId)) {
+                    $this->logAudit('Workers', "Transferred " . count($workerIds) . " worker(s) to site #$siteId");
                     $_SESSION['toast'] = "Successfully transferred " . count($workerIds) . " workers.";
                 } else {
                     $_SESSION['error'] = "Failed to transfer workers.";
@@ -217,6 +222,7 @@ class WorkerController extends Controller {
             if (!empty($workerIds)) {
                 $workerModel = new Worker();
                 if ($workerModel->bulkUpdateUniform($workerIds, $details, $issueDate)) {
+                    $this->logAudit('Workers', "Updated uniform for " . count($workerIds) . " worker(s)");
                     $_SESSION['toast'] = "Uniform updated for " . count($workerIds) . " workers.";
                 } else {
                     $_SESSION['error'] = "Failed to update uniforms.";

@@ -6,10 +6,17 @@ class Financial {
     public function __construct() { $this->db = Database::connect(); }
 
     public function getClientLedger() {
+        // Invoice-based so the figures reconcile with the Dashboard and Reports:
+        //   invoiced   = Σ issued invoice amounts (was Σ billing.grand_total, which
+        //                counted billing runs that were never turned into invoices)
+        //   collected  = Σ paid invoices
+        //   outstanding (billed − collected in the view) = Σ unpaid invoices
+        // This makes "Total Outstanding" identical to the invoice-derived figure
+        // shown everywhere else.
         return $this->db->query("
-            SELECT 
+            SELECT
                 c.company_name,
-                SUM(b.grand_total) as total_billed,
+                COALESCE(SUM(i.amount), 0) as total_billed,
                 COALESCE(SUM(i.amount) FILTER (WHERE i.status = 'Paid'), 0) as total_collected
             FROM clients c
             LEFT JOIN billing b ON c.id = b.client_id

@@ -14,6 +14,7 @@ class SiteController extends Controller {
                 $db = Database::connect();
                 $stmt = $db->prepare("INSERT INTO sites (client_id, name, address) VALUES (:c, :n, :a)");
                 $stmt->execute(['c' => $clientId, 'n' => $name, 'a' => $address]);
+                $this->logAudit('Sites', "Created site '$name' for client #$clientId");
                 $_SESSION['toast'] = "Site created successfully";
             }
         }

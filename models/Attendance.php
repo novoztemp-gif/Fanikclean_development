@@ -14,6 +14,82 @@ class Attendance {
      *
      * $records: [ workerId => ['status'=>, 'ot'=>, 'note'=>, 'dates'=>'Y-m-d,Y-m-d,...'] ]
      */
+    /**
+     * Read-only monthly register (muster roll). Returns one row per in-scope
+     * active worker with a day-indexed map of their recorded attendance plus
+     * per-worker totals, for rendering a worker × day matrix.
+     *
+     * $monthYear     'Y-m'
+     * $scopeSiteIds  null = all sites (admin); array = manager scope (empty = none)
+     * $filterSiteId  optional single-site narrow
+     *
+     * Each returned row: [
+     *   id, full_name, worker_code, category_name, site_name,
+     *   days    => [ dayInt => ['status'=>, 'ot_hours'=>, 'note'=>], ... ],
+     *   totals  => ['p'=>,'a'=>,'h'=>,'off'=>,'pl'=>,'sd'=>,'ot'=>]
+     * ]
+     */
+    public function getMonthlyRegister($monthYear, $scopeSiteIds = null, $filterSiteId = null) {
+        // 1) Workers in scope.
+        $where = ["w.status = 'Active'"];
+        $wParams = [];
+        if ($scopeSiteIds !== null) {
+            if (empty($scopeSiteIds)) { return []; } // manager with no sites
+            $keys = [];
+            foreach ($scopeSiteIds as $i => $sid) { $keys[] = ":s$i"; $wParams["s$i"] = $sid; }
+            $where[] = "w.site_id IN (" . implode(',', $keys) . ")";
+        }
+        if ($filterSiteId) { $where[] = "w.site_id = :fsid"; $wParams['fsid'] = $filterSiteId; }
+
+        $wStmt = $this->db->prepare("
+            SELECT w.id, w.full_name, w.worker_code,
+                   wc.name AS category_name, s.name AS site_name
+            FROM workers w
+            JOIN worker_categories wc ON w.category_id = wc.id
+            JOIN sites s ON w.site_id = s.id
+            WHERE " . implode(' AND ', $where) . "
+            ORDER BY s.name ASC, w.full_name ASC
+        ");
+        $wStmt->execute($wParams);
+        $workers = $wStmt->fetchAll();
+        if (empty($workers)) { return []; }
+
+        // 2) All attendance rows for those workers in the month, keyed by worker+day.
+        $ids = array_column($workers, 'id');
+        $ph = implode(',', array_fill(0, count($ids), '?'));
+        $aStmt = $this->db->prepare("
+            SELECT worker_id, EXTRACT(DAY FROM attendance_date)::int AS day,
+                   status, ot_hours, note
+            FROM attendance
+            WHERE worker_id IN ($ph) AND TO_CHAR(attendance_date, 'YYYY-MM') = ?
+        ");
+        $aStmt->execute(array_merge(array_values($ids), [$monthYear]));
+
+        $byWorker = [];
+        foreach ($aStmt->fetchAll() as $r) {
+            $byWorker[$r['worker_id']][(int)$r['day']] = [
+                'status'   => $r['status'],
+                'ot_hours' => $r['ot_hours'],
+                'note'     => $r['note'],
+            ];
+        }
+
+        // 3) Assemble rows with per-worker totals.
+        $out = [];
+        foreach ($workers as $w) {
+            $days = $byWorker[$w['id']] ?? [];
+            $totals = ['p' => 0, 'a' => 0, 'h' => 0, 'off' => 0, 'pl' => 0, 'sd' => 0, 'ot' => 0];
+            foreach ($days as $d) {
+                if (isset($totals[$d['status']])) { $totals[$d['status']]++; }
+                $totals['ot'] += (float)($d['ot_hours'] ?? 0);
+            }
+            $w['days'] = $days;
+            $w['totals'] = $totals;
+            $out[] = $w;
+        }
+        return $out;
+    }
+
     public function saveGrid($records, $userId, $allowedSiteIds = null) {
         if (empty($records)) {
             return false;

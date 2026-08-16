@@ -32,7 +32,9 @@ $router->post('/clients/create', 'ClientController', 'create');
 
 // Attendance
 $router->get('/attendance', 'AttendanceController', 'index');
+$router->get('/attendance/register', 'AttendanceController', 'register');
 $router->get('/attendance/manager', 'AttendanceController', 'managerAttendance');
+$router->get('/attendance/manager/register', 'AttendanceController', 'managerRegister');
 $router->post('/attendance/manager/save', 'AttendanceController', 'saveManagerAttendance');
 $router->get('/attendance/my', 'AttendanceController', 'viewMyAttendance');
 $router->post('/attendance/save', 'AttendanceController', 'saveBulk');

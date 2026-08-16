@@ -6,12 +6,17 @@ class Invoice {
     public function __construct() { $this->db = Database::connect(); }
 
     public function getAllInvoices($siteIds = null) {
+        // LEFT JOINs so invoices whose billing/client/site rows are missing
+        // (orphaned records) still appear in the ledger and can be settled —
+        // an INNER JOIN silently hid them, leaving unpaid invoices unreachable.
         $query = "
-            SELECT i.invoice_no, i.issue_date, i.amount, i.status, c.company_name, b.month_year, b.from_date, b.to_date, s.name as site_name
+            SELECT i.invoice_no, i.issue_date, i.amount, i.status,
+                   COALESCE(c.company_name, '— Unlinked (no billing record)') AS company_name,
+                   b.month_year, b.from_date, b.to_date, s.name as site_name
             FROM invoices i
-            JOIN billing b ON i.billing_id = b.id
-            JOIN clients c ON b.client_id = c.id
-            JOIN sites s ON b.site_id = s.id
+            LEFT JOIN billing b ON i.billing_id = b.id
+            LEFT JOIN clients c ON b.client_id = c.id
+            LEFT JOIN sites s ON b.site_id = s.id
         ";
         
         $params = [];

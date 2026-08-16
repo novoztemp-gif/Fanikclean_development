@@ -60,7 +60,11 @@ class UserController extends Controller {
             if ($userModel->findByEmail($email)) {
                 $_SESSION['error'] = "Email already registered";
             } else {
-                if ($userModel->create($name, $email, $passwordHash, $roleId, $guardianData)) {
+                $newId = $userModel->create($name, $email, $passwordHash, $roleId, $guardianData);
+                if ($newId) {
+                    // Persist site scope (multi-site) chosen in the create modal.
+                    $userModel->saveAssignments($newId, $_POST['site_ids'] ?? []);
+                    $this->logAudit('Users', "Created user: $name ($email)");
                     $_SESSION['toast'] = "User created successfully";
                 }
             }
@@ -74,15 +78,17 @@ class UserController extends Controller {
             $data = [
                 'full_name' => $_POST['full_name'],
                 'role_id' => $_POST['role_id'],
-                'site_id' => $_POST['site_id'],
                 'status' => $_POST['status'],
                 'guardian_name' => $_POST['guardian_name'] ?? '',
                 'guardian_phone' => $_POST['guardian_phone'] ?? '',
                 'guardian_place' => $_POST['guardian_place'] ?? ''
             ];
-            
+
             $userModel = new User();
             if ($userModel->update($id, $data)) {
+                // Site scope (multi-site) is saved to user_site_assignments.
+                $userModel->saveAssignments($id, $_POST['site_ids'] ?? []);
+                $this->logAudit('Users', "Updated user #$id: " . $data['full_name']);
                 $_SESSION['toast'] = "User updated successfully";
             }
             $this->redirect('/users');
