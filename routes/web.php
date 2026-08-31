@@ -54,6 +54,8 @@ $router->post('/payroll/approve', 'PayrollController', 'approve');
 
 // Sites
 $router->post('/sites/create', 'SiteController', 'create');
+$router->post('/sites/delete', 'SiteController', 'delete');
+$router->post('/sites/restore', 'SiteController', 'restore');
 
 // API Endpoints
 $router->get('/api/workers', 'WorkerController', 'apiGetBySite');

@@ -21,12 +21,12 @@ class BillingController extends Controller {
         // only their assigned sites and the clients that own them.
         if ($this->isAdmin()) {
             $clients = $clientModel->getAll();
-            $sites = $db->query("SELECT id, name, client_id FROM sites ORDER BY name")->fetchAll();
+            $sites = $db->query("SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
         } else {
             $assigned = $this->getAssignedSiteIds();
             if (!empty($assigned)) {
                 $ph = implode(',', array_fill(0, count($assigned), '?'));
-                $sStmt = $db->prepare("SELECT id, name, client_id FROM sites WHERE id IN ($ph) ORDER BY name");
+                $sStmt = $db->prepare("SELECT id, name, client_id FROM sites WHERE id IN ($ph) AND is_active = TRUE ORDER BY name");
                 $sStmt->execute(array_values($assigned));
                 $sites = $sStmt->fetchAll();
 

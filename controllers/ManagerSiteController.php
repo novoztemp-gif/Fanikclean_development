@@ -11,7 +11,7 @@ class ManagerSiteController extends Controller {
         $managers = $userModel->getManagers();
         
         $db = Database::connect();
-        $sites = $db->query("SELECT id, name FROM sites ORDER BY name")->fetchAll();
+        $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
 
         // Get current assignments for each manager
         foreach ($managers as &$m) {

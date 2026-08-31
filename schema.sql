@@ -40,7 +40,8 @@ CREATE TABLE sites (
     id SERIAL PRIMARY KEY,
     client_id INT REFERENCES clients(id) ON DELETE CASCADE,
     name VARCHAR(150) NOT NULL,
-    address TEXT
+    address TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- 3. Identity & Access

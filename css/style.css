@@ -35,8 +35,10 @@
   --sidebar-w:  256px;
   --topbar-h:   64px;
   --radius:     12px;
+  --navy:       #1e293b; /* alias of --slate; used by the toast */
   --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow:     0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-md:  0 6px 12px -2px rgb(0 0 0 / 0.12), 0 3px 6px -3px rgb(0 0 0 / 0.1);
   --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 html, body { height: 100%; }

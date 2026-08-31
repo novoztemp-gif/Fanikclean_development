@@ -16,7 +16,7 @@ class AttendanceController extends Controller {
 
         // Resolve the site scope for the current user.
         if ($this->isAdmin()) {
-            $sites = $db->query("SELECT id, name FROM sites ORDER BY name")->fetchAll();
+            $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
             $scopeSiteIds = null; // null = all sites
         } else {
             // Read assignments live from the DB — the login-time session snapshot
@@ -28,7 +28,7 @@ class AttendanceController extends Controller {
                 $sites = [];
             } else {
                 $ph = implode(',', array_fill(0, count($scopeSiteIds), '?'));
-                $stmt = $db->prepare("SELECT id, name FROM sites WHERE id IN ($ph) ORDER BY name");
+                $stmt = $db->prepare("SELECT id, name FROM sites WHERE id IN ($ph) AND is_active = TRUE ORDER BY name");
                 $stmt->execute(array_values($scopeSiteIds));
                 $sites = $stmt->fetchAll();
             }
@@ -99,7 +99,7 @@ class AttendanceController extends Controller {
 
         // Resolve the site scope for the current user (mirrors index()).
         if ($this->isAdmin()) {
-            $sites = $db->query("SELECT id, name FROM sites ORDER BY name")->fetchAll();
+            $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
             $scopeSiteIds = null;
         } else {
             $userModel = new User();
@@ -109,7 +109,7 @@ class AttendanceController extends Controller {
                 $sites = [];
             } else {
                 $ph = implode(',', array_fill(0, count($scopeSiteIds), '?'));
-                $stmt = $db->prepare("SELECT id, name FROM sites WHERE id IN ($ph) ORDER BY name");
+                $stmt = $db->prepare("SELECT id, name FROM sites WHERE id IN ($ph) AND is_active = TRUE ORDER BY name");
                 $stmt->execute(array_values($scopeSiteIds));
                 $sites = $stmt->fetchAll();
             }

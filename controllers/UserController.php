@@ -11,7 +11,7 @@ class UserController extends Controller {
         $users = $userModel->getAll();
         
         $db = Database::connect();
-        $sites = $db->query("SELECT id, name FROM sites ORDER BY name")->fetchAll();
+        $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
         $roles = $db->query("SELECT id, name FROM roles ORDER BY id")->fetchAll();
 
         $this->view('users/index', [
