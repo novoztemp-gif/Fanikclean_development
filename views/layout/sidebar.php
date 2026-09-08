@@ -222,6 +222,10 @@ if (strpos($navUri, 'workers') !== false || strpos($navUri, 'clients') !== false
           <?php if($navEmail): ?><div class="ud-email"><?= htmlspecialchars($navEmail) ?></div><?php endif; ?>
           <span class="ud-role-chip"><?= $navRoleLabel ?></span>
           <div class="ud-divider"></div>
+          <button type="button" class="ud-item ud-item-btn" onclick="openChangePasswordModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Change Password
+          </button>
           <a href="/logout" class="ud-item">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
             Logout
@@ -230,6 +234,36 @@ if (strpos($navUri, 'workers') !== false || strpos($navUri, 'clients') !== false
       </div>
     </div>
   </header>
+
+  <!-- CHANGE MY PASSWORD MODAL (self-service, any role) -->
+  <div class="modal-overlay" id="modal-change-password">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Change Password</div>
+        <button type="button" class="modal-close" onclick="closeModal('modal-change-password')">×</button>
+      </div>
+      <form method="POST" action="/account/change-password" id="change-password-form" onsubmit="return validateChangePasswordForm()">
+        <div style="padding: 24px;">
+          <div class="form-group mb16">
+            <label class="form-label">Current Password</label>
+            <input class="form-input" type="password" name="current_password" id="cp-current-password" placeholder="Your current password" required>
+          </div>
+          <div class="form-group mb16">
+            <label class="form-label">New Password</label>
+            <input class="form-input" type="password" name="new_password" id="cp-new-password" placeholder="At least 6 characters" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input class="form-input" type="password" name="new_password_confirm" id="cp-new-password-confirm" placeholder="Re-enter new password" minlength="6" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" style="border:none; background:transparent;" onclick="closeModal('modal-change-password')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- CONTENT -->
   <div class="content">

@@ -58,4 +58,35 @@ class AuthController extends Controller {
         session_destroy();
         $this->redirect('/login');
     }
+
+    // Self-service password change, available to any logged-in user (Admin
+    // or Manager) from their own topbar menu. Requires the current password --
+    // unlike Credential Management (Admin resetting a Manager's password),
+    // this never lets anyone change a password they don't already know.
+    public function changePassword() {
+        $this->checkAuth();
+        $back = $_SERVER['HTTP_REFERER'] ?? '/dashboard';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $current = $_POST['current_password'] ?? '';
+            $new = $_POST['new_password'] ?? '';
+            $confirm = $_POST['new_password_confirm'] ?? '';
+
+            $userModel = new User();
+            $user = $userModel->getById($_SESSION['user_id']);
+
+            if (!$user || !password_verify($current, $user['password_hash'])) {
+                $_SESSION['error'] = "Current password is incorrect";
+            } elseif (strlen($new) < 6) {
+                $_SESSION['error'] = "New password must be at least 6 characters";
+            } elseif ($new !== $confirm) {
+                $_SESSION['error'] = "New passwords do not match";
+            } else {
+                $userModel->updatePassword($user['id'], password_hash($new, PASSWORD_BCRYPT));
+                $this->logAudit('Auth', 'Changed own password');
+                $_SESSION['toast'] = "Password updated successfully";
+            }
+        }
+        $this->redirect($back);
+    }
 }

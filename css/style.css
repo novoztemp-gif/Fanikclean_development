@@ -254,11 +254,15 @@ body {
 .ud-divider { height: 1px; background: var(--border); margin: 12px 0; }
 .ud-item {
   display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 600; color: var(--danger);
-  text-decoration: none; padding: 6px 4px; border-radius: 4px;
+  width: 100%;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: var(--danger);
+  text-decoration: none; background: none; border: none; cursor: pointer;
+  padding: 6px 4px; border-radius: 4px; margin-bottom: 2px;
   transition: background .14s ease;
 }
 .ud-item:hover { background: var(--red-bg); }
+.ud-item-btn { color: var(--text2); }
+.ud-item-btn:hover { background: var(--bg); }
 
 /* ===== STAT STRIP (replaces icon-box KPI cards) ===== */
 .statline {

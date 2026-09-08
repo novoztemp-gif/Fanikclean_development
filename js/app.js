@@ -205,6 +205,26 @@ document.addEventListener('click', function (e) {
     }
 });
 
+function openChangePasswordModal() {
+    document.getElementById('user-menu').classList.remove('open');
+    document.getElementById('change-password-form').reset();
+    openModal('modal-change-password');
+}
+
+function validateChangePasswordForm() {
+    var pw = document.getElementById('cp-new-password').value;
+    var confirm = document.getElementById('cp-new-password-confirm').value;
+    if (pw !== confirm) {
+        toast('New passwords do not match', 'error');
+        return false;
+    }
+    if (pw.length < 6) {
+        toast('New password must be at least 6 characters', 'error');
+        return false;
+    }
+    return true;
+}
+
 // ---- Sidebar "Finance" show all / hide ----
 function toggleFinanceNav() {
     var box = document.getElementById('finance-collapse');

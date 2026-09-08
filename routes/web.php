@@ -3,6 +3,7 @@
 $router->get('/login', 'AuthController', 'login');
 $router->post('/login', 'AuthController', 'authenticate');
 $router->get('/logout', 'AuthController', 'logout');
+$router->post('/account/change-password', 'AuthController', 'changePassword');
 
 // Dashboard
 $router->get('/', 'DashboardController', 'index');
