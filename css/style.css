@@ -87,7 +87,12 @@ body {
   position: relative;
 }
 
-.content { flex: 1; padding: 24px 28px; animation: rise .38s cubic-bezier(.2,.7,.3,1) both; }
+/* fill-mode intentionally omitted (not "both"/"forwards") -- a completed fill-forwards
+   animation keeps controlling `transform` even at its identity end value, which makes
+   this the containing block for any position:fixed descendant (e.g. modals nested
+   inside .content), pinning them here instead of the viewport. No delay is set, so
+   there's nothing for "backwards" to fill either; dropping fill-mode is a no-op visually. */
+.content { flex: 1; padding: 24px 28px; animation: rise .38s cubic-bezier(.2,.7,.3,1); }
 .loadbar {
   position: absolute; top: 0; left: 0; height: 2px; width: 0;
   background: var(--primary); z-index: 150;
@@ -150,7 +155,7 @@ body {
   text-decoration: none;
   z-index: 1;
   border-left: 2px solid transparent;
-  animation: sidefade .36s cubic-bezier(.2,.7,.3,1) both;
+  animation: sidefade .36s cubic-bezier(.2,.7,.3,1); /* no fill-mode -- see .content comment above */
 }
 .nav-item:hover { color: var(--side-text-on); }
 
@@ -240,7 +245,7 @@ body {
   width: 220px; background: var(--card); border: 1px solid var(--border);
   border-radius: 6px; box-shadow: var(--shadow-lg);
   padding: 14px;
-  animation: rise .16s cubic-bezier(.2,.7,.3,1) both;
+  animation: rise .16s cubic-bezier(.2,.7,.3,1); /* no fill-mode -- see .content comment above */
 }
 .user-menu.open .user-dropdown { display: block; }
 .ud-name { font-size: 13.5px; font-weight: 700; color: var(--text); }
@@ -269,7 +274,7 @@ body {
   display: flex; flex-wrap: wrap;
   border: 1px solid var(--border); background: var(--card);
   margin-bottom: 22px;
-  animation: rise .42s cubic-bezier(.2,.7,.3,1) both;
+  animation: rise .42s cubic-bezier(.2,.7,.3,1); /* no fill-mode -- see .content comment above */
 }
 .statcell { flex: 1; min-width: 140px; padding: 14px 18px; border-left: 1px solid var(--border); }
 .statcell:first-child { border-left: none; }
@@ -698,8 +703,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .empty p { font-size: 14px; color: var(--text3); }
 
 /* ===== KEYFRAMES ===== */
-@keyframes rise{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
-@keyframes sidefade{ from{ opacity:0; transform:translateX(-5px); } to{ opacity:1; transform:translateX(0); } }
+/* end on transform:none, not translate(0) -- a non-"none" transform (even a
+   no-op identity one) turns the animated element into the containing block
+   for any position:fixed descendant, e.g. modals nested inside .content.
+   animation-fill-mode:both keeps whichever transform is here forever after
+   the animation ends, so this has to resolve to none, not just look like it. */
+@keyframes rise{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@keyframes sidefade{ from{ opacity:0; transform:translateX(-5px); } to{ opacity:1; transform:none; } }
 @keyframes live{ 0%{ box-shadow:0 0 0 0 rgba(47,107,79,.35); } 70%{ box-shadow:0 0 0 5px rgba(47,107,79,0); } 100%{ box-shadow:0 0 0 0 rgba(47,107,79,0); } }
 @keyframes loadsweep{ 0%{ width:0; opacity:1; } 70%{ width:96%; opacity:1; } 100%{ width:100%; opacity:0; } }
 
