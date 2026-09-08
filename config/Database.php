@@ -26,7 +26,12 @@ class Database {
             try {
                 self::$pdo = new PDO($dsn, $user, $pass, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    // The database is hosted remotely (e.g. Supabase), so every
+                    // request pays a full TCP+TLS+auth handshake to reconnect.
+                    // A persistent connection lets the web server's worker
+                    // process reuse one live connection across requests instead.
+                    PDO::ATTR_PERSISTENT => true
                 ]);
             } catch (\PDOException $e) {
                 die("Database Connection failed: " . $e->getMessage());

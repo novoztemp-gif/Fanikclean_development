@@ -41,17 +41,27 @@ class Controller {
     }
 
     /**
-     * A manager's site scope, read fresh from the DB on every call rather than
-     * trusting a session cache. If an Admin changes a manager's assignments
-     * while that manager is already logged in, this makes sure they see the
-     * new scope on their very next request instead of the stale one from
-     * login -- no re-login required.
+     * A manager's site scope, read fresh from the DB rather than trusting a
+     * session cache -- so if an Admin changes a manager's assignments while
+     * that manager is already logged in, they see the new scope on their
+     * very next request instead of the stale one from login, no re-login
+     * required. Memoized per-request (static, resets on the next request):
+     * a single page load can call this from the controller's own scoping
+     * logic, the sidebar's badge counts, and canAccessSite() checks, and
+     * without this it was re-querying the same data every single time.
      */
     protected function getAssignedSiteIds() {
+        static $cached = null;
+        static $cachedFor = null;
+
         if (!isset($_SESSION['user_id'])) return [];
+        if ($cached !== null && $cachedFor === $_SESSION['user_id']) return $cached;
+
         require_once __DIR__ . '/../models/User.php';
         $siteIds = (new User())->getAssignedSiteIds($_SESSION['user_id']);
         $_SESSION['assigned_site_ids'] = $siteIds; // kept in sync for any legacy direct reads
+        $cached = $siteIds;
+        $cachedFor = $_SESSION['user_id'];
         return $siteIds;
     }
 
