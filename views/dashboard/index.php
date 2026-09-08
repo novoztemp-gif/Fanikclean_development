@@ -104,7 +104,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('attendanceChart').getContext('2d');
 
-    const trendData = <?= json_encode((new Dashboard())->getAttendanceTrends($siteScope ?? null)) ?>;
+    const trendData = <?= json_encode($insights['attendance_trends'] ?? []) ?>;
 
     new Chart(ctx, {
         type: 'bar',

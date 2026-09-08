@@ -13,29 +13,27 @@ try {
 
     // Managers with no assigned sites have nothing in scope -> all counts stay 0.
     if ($isAdmin || !empty($siteIds)) {
-        $siteFilter = '';
+        $siteFilterA = ''; $siteFilterB = '';
         $params = [];
         if (!$isAdmin) {
             $ph = implode(',', array_fill(0, count($siteIds), '?'));
-            $siteFilter = $ph; // reused per-query with the right column
-            $params = $siteIds;
+            $siteFilterA = " AND w.site_id IN ($ph)";
+            $siteFilterB = " AND b.site_id IN ($ph)";
+            $params = array_merge($siteIds, $siteIds); // once per subquery below
         }
 
-        // Active workers not yet marked for today's attendance.
-        // Only workers assigned to a site can appear in / be marked on the grid,
-        // so unassigned (site_id IS NULL) workers are excluded — otherwise the
-        // badge could never reach zero.
-        $sql = "SELECT COUNT(*) FROM workers w WHERE w.status = 'Active' AND w.site_id IS NOT NULL
-                AND NOT EXISTS (SELECT 1 FROM attendance a WHERE a.worker_id = w.id AND a.attendance_date = CURRENT_DATE)";
-        if (!$isAdmin) { $sql .= " AND w.site_id IN ($siteFilter)"; }
+        // Both badge counts in one round trip -- the DB is remote, so every
+        // extra query here is real latency paid on literally every page load.
+        $sql = "SELECT
+            (SELECT COUNT(*) FROM workers w WHERE w.status = 'Active' AND w.site_id IS NOT NULL
+                AND NOT EXISTS (SELECT 1 FROM attendance a WHERE a.worker_id = w.id AND a.attendance_date = CURRENT_DATE)
+                $siteFilterA) AS attendance_pending,
+            (SELECT COUNT(*) FROM invoices i JOIN billing b ON i.billing_id = b.id WHERE i.status <> 'Paid'
+                $siteFilterB) AS invoices_unpaid";
         $st = $navDb->prepare($sql); $st->execute($params);
-        $navCounts['attendance'] = (int) $st->fetchColumn();
-
-        // Invoices not yet paid
-        $sql = "SELECT COUNT(*) FROM invoices i JOIN billing b ON i.billing_id = b.id WHERE i.status <> 'Paid'";
-        if (!$isAdmin) { $sql .= " AND b.site_id IN ($siteFilter)"; }
-        $st = $navDb->prepare($sql); $st->execute($params);
-        $navCounts['invoices'] = (int) $st->fetchColumn();
+        $row = $st->fetch();
+        $navCounts['attendance'] = (int) $row['attendance_pending'];
+        $navCounts['invoices'] = (int) $row['invoices_unpaid'];
     }
 } catch (Throwable $e) {
     // Never let a badge query break the layout; just show no badges.

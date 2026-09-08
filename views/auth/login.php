@@ -11,10 +11,15 @@ require_once __DIR__ . '/../../config/Database.php';
 $loginSiteCount = 0; $loginCheckedInToday = 0;
 try {
     $ldb = Database::connect();
-    $loginSiteCount = (int) $ldb->query("SELECT COUNT(*) FROM sites WHERE is_active = TRUE")->fetchColumn();
-    $st = $ldb->prepare("SELECT COUNT(*) FROM attendance WHERE attendance_date = CURRENT_DATE AND status IN ('p','h')");
-    $st->execute();
-    $loginCheckedInToday = (int) $st->fetchColumn();
+    // One round trip for both figures -- the DB is remote, so every extra
+    // query here is real latency added to every visit to this pre-auth page.
+    $row = $ldb->query("
+        SELECT
+            (SELECT COUNT(*) FROM sites WHERE is_active = TRUE) AS site_count,
+            (SELECT COUNT(*) FROM attendance WHERE attendance_date = CURRENT_DATE AND status IN ('p','h')) AS checked_in
+    ")->fetch();
+    $loginSiteCount = (int) $row['site_count'];
+    $loginCheckedInToday = (int) $row['checked_in'];
 } catch (Throwable $e) {
     // DB unreachable — panel just shows zeros rather than breaking login.
 }
