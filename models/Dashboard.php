@@ -32,7 +32,7 @@ class Dashboard {
                 'outstanding_amount' => 0, 'unpaid_invoices_count' => 0,
                 'attendance_summary' => ['present' => 0, 'absent' => 0, 'half_day' => 0, 'ot_hours' => 0],
                 'recent_invoices' => [],
-                'pending_leave' => 0, 'pending_attendance' => 0, 'pending_billing' => 0,
+                'pending_attendance' => 0, 'pending_billing' => 0,
             ];
         }
 
@@ -81,6 +81,7 @@ class Dashboard {
                 COUNT(*) FILTER (WHERE status = 'p') as present,
                 COUNT(*) FILTER (WHERE status = 'a') as absent,
                 COUNT(*) FILTER (WHERE status = 'h') as half_day,
+                COUNT(*) FILTER (WHERE status = 'off') as off_duty,
                 SUM(COALESCE(ot_hours, 0)) as ot_hours
             FROM attendance
             WHERE TO_CHAR(attendance_date, 'YYYY-MM') = ?" . ($scoped ? " AND site_id IN ($in)" : ''),
@@ -97,10 +98,6 @@ class Dashboard {
             LIMIT 4", $sp)->fetchAll();
 
         // 7. Pending Approvals
-        $insights['pending_leave'] = $this->scalar(
-            "SELECT COUNT(*) FROM leave_requests lr" .
-            ($scoped ? " JOIN workers w ON lr.worker_id = w.id WHERE lr.status = 'Pending' AND w.site_id IN ($in)"
-                     : " WHERE lr.status = 'Pending'"), $sp);
         $insights['pending_attendance'] = $this->scalar(
             "SELECT COUNT(DISTINCT attendance_date) FROM attendance WHERE locked = FALSE" . ($scoped ? " AND site_id IN ($in)" : ''),
             $sp);
@@ -146,6 +143,52 @@ class Dashboard {
             GROUP BY wc.name
             ORDER BY count DESC
         ", $params)->fetchAll();
+    }
+
+    /** Top sites by active worker headcount — feeds the dashboard's Sites Overview chart. */
+    public function getSiteHeadcounts($siteIds = null, $limit = 6) {
+        [$filter, $params] = $this->siteFilter('s.id', $siteIds, 'AND');
+        $stmt = $this->db->prepare("
+            SELECT s.name, COUNT(w.id) FILTER (WHERE w.status = 'Active') as headcount
+            FROM sites s
+            LEFT JOIN workers w ON w.site_id = s.id
+            WHERE s.is_active = TRUE $filter
+            GROUP BY s.id, s.name
+            ORDER BY headcount DESC, s.name ASC
+            LIMIT $limit
+        ");
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /** Workers marked present (or half-day) today — feeds the dashboard stat strip. */
+    public function getPresentToday($siteIds = null) {
+        [$filter, $params] = $this->siteFilter('site_id', $siteIds);
+        return (int) $this->scalar(
+            "SELECT COUNT(*) FROM attendance WHERE attendance_date = CURRENT_DATE AND status IN ('p','h') $filter",
+            $params
+        );
+    }
+
+    /** Invoice counts grouped by status — feeds the dashboard's Invoice Status doughnut. */
+    public function getInvoiceStatusBreakdown($siteIds = null) {
+        $scoped = is_array($siteIds);
+        if ($scoped && count($siteIds) === 0) {
+            return ['Paid' => 0, 'Unpaid' => 0, 'Pending' => 0];
+        }
+        $in = $scoped ? implode(',', array_fill(0, count($siteIds), '?')) : '';
+        $sp = $scoped ? array_values($siteIds) : [];
+
+        $sql = $scoped
+            ? "SELECT i.status, COUNT(*) as c FROM invoices i JOIN billing b ON i.billing_id = b.id WHERE b.site_id IN ($in) GROUP BY i.status"
+            : "SELECT status, COUNT(*) as c FROM invoices GROUP BY status";
+        $rows = $this->run($sql, $sp)->fetchAll();
+
+        $out = ['Paid' => 0, 'Unpaid' => 0, 'Pending' => 0];
+        foreach ($rows as $r) {
+            $out[$r['status']] = (int)$r['c'];
+        }
+        return $out;
     }
 
     /**

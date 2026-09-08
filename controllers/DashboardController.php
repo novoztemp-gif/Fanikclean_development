@@ -11,11 +11,17 @@ class DashboardController extends Controller {
         // Admin sees everything (null); managers are scoped to their assigned sites.
         $siteScope = $this->isAdmin() ? null : $this->getAssignedSiteIds();
         $insights = $dashboardModel->getDashboardInsights($siteScope);
+        $siteHeadcounts = $dashboardModel->getSiteHeadcounts($siteScope);
+        $workforceDist = $dashboardModel->getWorkerRoleDistribution($siteScope);
+        $presentToday = $dashboardModel->getPresentToday($siteScope);
 
         $this->view('dashboard/index', [
             'pageTitle' => 'Dashboard',
             'insights' => $insights,
-            'siteScope' => $siteScope
+            'siteScope' => $siteScope,
+            'siteHeadcounts' => $siteHeadcounts,
+            'workforceDist' => $workforceDist,
+            'presentToday' => $presentToday
         ]);
     }
 }

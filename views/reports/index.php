@@ -15,15 +15,6 @@
             <div class="fs12 fw7 c-teal"><?= $insights['attendance_summary']['present'] ?> Records Logged</div>
         </div>
 
-        <div class="report-card" onclick="location.href='/leave'">
-            <div class="report-icon" style="background:var(--amber-bg); color:var(--warning);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </div>
-            <div class="report-name">Leave Analytics</div>
-            <div class="report-desc">Track granted and pending leave requests by category.</div>
-            <div class="badge b-amber"><?= $insights['pending_leave'] ?> Pending Requests</div>
-        </div>
-
         <div class="report-card" onclick="location.href='/workers'">
             <div class="report-icon" style="background:var(--primary-bg); color:var(--primary);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>

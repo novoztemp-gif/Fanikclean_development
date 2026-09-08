@@ -54,13 +54,13 @@
                           class="form-input att-select <?= $status ?>"
                           style="width: 170px;"
                           onchange="this.className = 'form-input att-select ' + this.value">
-                    <option value="p" style="background:#dcfce7; color:#15803d;" <?= $status == 'p' ? 'selected' : '' ?>>Present (P)</option>
-                    <option value="off" style="background:#fee2e2; color:#b91c1c;" <?= $status == 'off' ? 'selected' : '' ?>>Off Duty (Off)</option>
-                    <option value="h" style="background:#fef3c7; color:#b45309;" <?= $status == 'h' ? 'selected' : '' ?>>Half Day (H)</option>
+                    <option value="p" style="background:#E7F1EC; color:#2F6B4F;" <?= $status == 'p' ? 'selected' : '' ?>>Present (P)</option>
+                    <option value="off" style="background:#FBEDEA; color:#8C3324;" <?= $status == 'off' ? 'selected' : '' ?>>Off Duty (Off)</option>
+                    <option value="h" style="background:#FBF1E0; color:#7A5310;" <?= $status == 'h' ? 'selected' : '' ?>>Half Day (H)</option>
                     <?php if ($count < 4 || $status == 'pl'): ?>
-                        <option value="pl" style="background:#dbeafe; color:#1d4ed8;" <?= $status == 'pl' ? 'selected' : '' ?>>Paid Leave (PL)</option>
+                        <option value="pl" style="background:#EAF1F8; color:#2E5478;" <?= $status == 'pl' ? 'selected' : '' ?>>Paid Leave (PL)</option>
                     <?php endif; ?>
-                    <option value="sd" style="background:#ede9fe; color:#6d28d9;" <?= $status == 'sd' ? 'selected' : '' ?>>Special Duty (SD)</option>
+                    <option value="sd" style="background:#F1EEF7; color:#4A3F72;" <?= $status == 'sd' ? 'selected' : '' ?>>Special Duty (SD)</option>
                   </select>
                   <button type="button" class="btn btn-sm btn-icon cal-btn" title="Pick days to apply this status" onclick="openCalendar('<?= $m['id'] ?>', this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -72,7 +72,7 @@
               <td>
                 <input type="text" name="manager_attendance[<?= $m['id'] ?>][note]"
                        class="form-input"
-                       value="<?= htmlspecialchars($note) ?>"
+                       value="<?= htmlspecialchars($note ?? '') ?>"
                        placeholder="Optional remarks...">
               </td>
             </tr>
@@ -200,11 +200,11 @@ function reloadDate(value) {
 
 <style>
 .att-select { font-weight: 600; cursor: pointer; }
-.att-select.p   { background: #dcfce7 !important; color: #15803d !important; border-color: #4ade80 !important; }
-.att-select.off { background: #fee2e2 !important; color: #b91c1c !important; border-color: #f87171 !important; }
-.att-select.h   { background: #fef3c7 !important; color: #b45309 !important; border-color: #fbbf24 !important; }
-.att-select.pl  { background: #dbeafe !important; color: #1d4ed8 !important; border-color: #60a5fa !important; }
-.att-select.sd  { background: #ede9fe !important; color: #6d28d9 !important; border-color: #a78bfa !important; }
+.att-select.p   { background: #E7F1EC !important; color: #2F6B4F !important; border-color: #BFDDCB !important; }
+.att-select.off { background: #FBEDEA !important; color: #8C3324 !important; border-color: #E9C4BA !important; }
+.att-select.h   { background: #FBF1E0 !important; color: #7A5310 !important; border-color: #EBD2A0 !important; }
+.att-select.pl  { background: #EAF1F8 !important; color: #2E5478 !important; border-color: #B9D2E8 !important; }
+.att-select.sd  { background: #F1EEF7 !important; color: #4A3F72 !important; border-color: #D2C9E8 !important; }
 
 .cal-count { min-width: 22px; justify-content: center; }
 .cal-popup {

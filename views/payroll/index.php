@@ -89,10 +89,10 @@
             <th>Employee & Site</th>
             <th>Month</th>
             <th>Category</th>
-            <th>Attendance</th>
-            <th>Basic Pay</th>
-            <th>OT Pay</th>
-            <th>Net Salary</th>
+            <th class="text-right">Attendance</th>
+            <th class="text-right">Basic Pay</th>
+            <th class="text-right">OT Pay</th>
+            <th class="text-right">Net Salary</th>
             <th class="text-right">Status</th>
           </tr>
         </thead>
@@ -111,13 +111,13 @@
             </td>
             <td><span class="chip fs11"><?= htmlspecialchars($p['month_year']) ?></span></td>
             <td><span class="badge b-gray fs11"><?= htmlspecialchars($p['category_name']) ?></span></td>
-            <td><span class="fw7"><?= number_format($p['days_worked'], 1) ?></span> <span class="fs11 c-secondary">days</span></td>
-            <td class="mono fs13">₹<?= number_format($p['basic_pay'], 2) ?></td>
-            <td class="mono fs13">
+            <td class="text-right"><span class="fw7"><?= number_format($p['days_worked'], 1) ?></span> <span class="fs11 c-secondary">days</span></td>
+            <td class="mono fs13 text-right">₹<?= number_format($p['basic_pay'], 2) ?></td>
+            <td class="mono fs13 text-right">
               <div class="fs11 c-secondary"><?= number_format($p['ot_days'] * 8, 1) ?> hrs</div>
               <div class="fw6">₹<?= number_format($p['ot_pay'], 2) ?></div>
             </td>
-            <td class="bold fs15" style="color: var(--primary);">₹<?= number_format($p['net_pay'], 2) ?></td>
+            <td class="bold fs15 text-right" style="color: var(--primary);">₹<?= number_format($p['net_pay'], 2) ?></td>
             <td class="text-right">
               <span class="badge <?= $p['status'] == 'Approved' || $p['status'] == 'Paid' ? 'b-green' : 'b-amber' ?>">
                 <?= htmlspecialchars($p['status'] ?? 'Pending') ?>

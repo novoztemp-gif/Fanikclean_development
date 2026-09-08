@@ -128,6 +128,85 @@ class AttendanceController extends Controller {
     }
 
     /**
+     * Downloads the same monthly register as a proper .xlsx workbook —
+     * one column per calendar day plus the P/Off/H/PL/SD/OT totals, exactly
+     * mirroring what's on screen at /attendance/register.
+     */
+    public function exportRegister() {
+        $this->checkAuth();
+        require_once __DIR__ . '/../core/XlsxWriter.php';
+
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) { $month = date('Y-m'); }
+        $filterSiteId = $_GET['site_id'] ?? null;
+
+        if ($this->isAdmin()) {
+            $scopeSiteIds = null;
+        } else {
+            $userModel = new User();
+            $scopeSiteIds = $userModel->getAssignedSiteIds($_SESSION['user_id']);
+        }
+
+        $attModel = new Attendance();
+        $rows = $attModel->getMonthlyRegister($month, $scopeSiteIds, $filterSiteId);
+
+        $daysInMonth = (int)date('t', strtotime($month . '-01'));
+        $codeLabel = ['p' => 'P', 'off' => 'Off', 'h' => 'H', 'pl' => 'PL', 'sd' => 'SD'];
+
+        $headers = ['Worker Name', 'Worker Code', 'Category', 'Site'];
+        $colWidths = [22, 12, 14, 20];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $headers[] = date('d', strtotime(sprintf('%s-%02d', $month, $d)));
+            $colWidths[] = 4;
+        }
+        foreach (['Present', 'Off Duty', 'Half-Day', 'Paid Leave', 'Special Duty', 'OT Hours'] as $totalLabel) {
+            $headers[] = $totalLabel;
+            $colWidths[] = 11;
+        }
+
+        $data = [];
+        foreach ($rows as $r) {
+            $line = [
+                $r['full_name'],
+                $r['worker_code'],
+                $r['category_name'] ?? 'General',
+                $r['site_name'],
+            ];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $cell = $r['days'][$d] ?? null;
+                $line[] = ($cell && isset($codeLabel[$cell['status']])) ? $codeLabel[$cell['status']] : '';
+            }
+            $line[] = $r['totals']['p'] ?: 0;
+            $line[] = $r['totals']['off'] ?: 0;
+            $line[] = $r['totals']['h'] ?: 0;
+            $line[] = $r['totals']['pl'] ?: 0;
+            $line[] = $r['totals']['sd'] ?: 0;
+            $line[] = $r['totals']['ot'] ?: 0;
+            $data[] = $line;
+        }
+
+        $monthLabel = date('F Y', strtotime($month . '-01'));
+        $siteLabel = '';
+        if ($filterSiteId) {
+            $siteStmt = Database::connect()->prepare("SELECT name FROM sites WHERE id = :id");
+            $siteStmt->execute(['id' => $filterSiteId]);
+            $siteName = $siteStmt->fetchColumn();
+            if ($siteName) { $siteLabel = ' — ' . $siteName; }
+        }
+
+        $this->logAudit('Attendance', "Exported attendance register for $monthLabel");
+
+        XlsxWriter::download(
+            "attendance-register-$month.xlsx",
+            'Attendance Register',
+            "FanikClean — Attendance Register — $monthLabel$siteLabel",
+            $headers,
+            $data,
+            $colWidths
+        );
+    }
+
+    /**
      * Read-only monthly register for manager attendance (managers × days matrix).
      * Admin-only, mirrors register() but for the manager_attendance table.
      */

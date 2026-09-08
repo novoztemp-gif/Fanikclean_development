@@ -15,8 +15,8 @@
                 <thead>
                     <tr>
                         <th>Category Name</th>
-                        <th>Current Daily Rate (Basic)</th>
-                        <th>Standard 8hr OT Rate</th>
+                        <th class="text-right">Current Daily Rate (Basic)</th>
+                        <th class="text-right">Standard 8hr OT Rate</th>
                         <th class="text-right">Manage</th>
                     </tr>
                 </thead>
@@ -26,8 +26,8 @@
                     ?>
                     <tr>
                         <td class="bold"><?= htmlspecialchars($cat['name']) ?></td>
-                        <td class="mono fw7 c-teal">₹<?= number_format($cat['default_rate'], 2) ?></td>
-                        <td class="mono fs12 c-secondary">₹<?= number_format($otRate, 2) ?>/hr</td>
+                        <td class="mono fw7 c-teal text-right">₹<?= number_format($cat['default_rate'], 2) ?></td>
+                        <td class="mono fs12 c-secondary text-right">₹<?= number_format($otRate, 2) ?>/hr</td>
                         <td class="text-right">
                             <button class="btn btn-sm" onclick="openRateModal('<?= $cat['id'] ?>', '<?= $cat['name'] ?>', '<?= $cat['default_rate'] ?>')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>

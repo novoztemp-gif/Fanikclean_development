@@ -61,6 +61,7 @@ class User {
                 JOIN sites st ON usa.site_id = st.id
                 GROUP BY usa.user_id
             ) sa ON sa.user_id = u.id
+            WHERE u.status != 'Deleted'
             ORDER BY u.id DESC
         ")->fetchAll();
     }
@@ -89,11 +90,13 @@ class User {
     public function update($id, $data) {
         // Site scope is managed via user_site_assignments (see saveAssignments),
         // not the legacy users.site_id column, which is no longer written here.
+        // Lifecycle status is managed separately via suspend()/reactivate()/softDelete()
+        // so it can't be bypassed through the general profile edit form.
         $stmt = $this->db->prepare("
             UPDATE users
             SET full_name = :fn,
+                email = :em,
                 role_id = :rid,
-                status = :status,
                 guardian_name = :gn,
                 guardian_phone = :gp,
                 guardian_place = :gpl
@@ -102,12 +105,59 @@ class User {
         return $stmt->execute([
             'id' => $id,
             'fn' => $data['full_name'],
+            'em' => $data['email'],
             'rid' => $data['role_id'],
-            'status' => $data['status'],
             'gn' => $data['guardian_name'] ?? null,
             'gp' => $data['guardian_phone'] ?? null,
             'gpl' => $data['guardian_place'] ?? null
         ]);
+    }
+
+    // Case-insensitive uniqueness check, excluding the user's own row --
+    // email is the login lookup key, so a duplicate would let two accounts
+    // collide at sign-in.
+    public function emailTakenByOther($email, $excludeId) {
+        $stmt = $this->db->prepare("SELECT 1 FROM users WHERE LOWER(email) = LOWER(:email) AND id != :id");
+        $stmt->execute(['email' => $email, 'id' => $excludeId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    // Reversible: blocks login and hides the user from managers/selectors,
+    // but the row and all related history stay untouched. Only from Active.
+    public function suspend($id) {
+        $stmt = $this->db->prepare("UPDATE users SET status = 'Inactive' WHERE id = :id AND status = 'Active'");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    // Undoes a suspend. Only from Inactive.
+    public function reactivate($id) {
+        $stmt = $this->db->prepare("UPDATE users SET status = 'Active' WHERE id = :id AND status = 'Inactive'");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    // Permanent, irreversible. Only reachable from Inactive (must be suspended
+    // first). Never deletes the row -- attendance, payroll, audit_logs and
+    // invoices keep referencing this user id -- it just marks the account so
+    // it can never log in or appear anywhere again.
+    public function softDelete($id) {
+        $stmt = $this->db->prepare("UPDATE users SET status = 'Deleted' WHERE id = :id AND status = 'Inactive'");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    // Sets a new login password. The caller is responsible for hashing it --
+    // this never touches or logs the plaintext value.
+    public function updatePassword($id, $passwordHash) {
+        $stmt = $this->db->prepare("UPDATE users SET password_hash = :h WHERE id = :id");
+        return $stmt->execute(['h' => $passwordHash, 'id' => $id]);
+    }
+
+    public function countActiveAdmins() {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE role_id = 1 AND status = 'Active'");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     public function getAssignedSiteIds($userId) {
@@ -121,7 +171,7 @@ class User {
             SELECT u.*, r.name as role_name 
             FROM users u 
             JOIN roles r ON u.role_id = r.id 
-            WHERE u.role_id = 2 
+            WHERE u.role_id = 2 AND u.status = 'Active'
             ORDER BY u.full_name ASC
         ");
         $stmt->execute();

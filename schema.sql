@@ -59,7 +59,7 @@ CREATE TABLE users (
     guardian_phone VARCHAR(15),
     guardian_place VARCHAR(150),
     
-    status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+    status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive', 'Deleted')),
     last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -135,18 +135,6 @@ CREATE TABLE manager_attendance (
     updated_by INT REFERENCES users(id),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, attendance_date)
-);
-
-CREATE TABLE leave_requests (
-    id SERIAL PRIMARY KEY,
-    worker_id INT REFERENCES workers(id) ON DELETE CASCADE,
-    from_date DATE NOT NULL,
-    to_date DATE NOT NULL,
-    leave_type VARCHAR(50) CHECK (leave_type IN ('Personal', 'Medical', 'Family Emergency', 'Weekly Off')),
-    reason TEXT,
-    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
-    reviewed_by INT REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 6. Financial & Commercial

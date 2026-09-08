@@ -36,9 +36,9 @@
                 <thead>
                     <tr>
                         <th>Client Organization</th>
-                        <th>Total Invoiced (Life-time)</th>
-                        <th>Total Collected</th>
-                        <th>Outstanding Amount</th>
+                        <th class="text-right">Total Invoiced (Life-time)</th>
+                        <th class="text-right">Total Collected</th>
+                        <th class="text-right">Outstanding Amount</th>
                         <th>Collection %</th>
                     </tr>
                 </thead>
@@ -52,9 +52,9 @@
                         ?>
                         <tr>
                             <td class="bold"><?= htmlspecialchars($row['company_name']) ?></td>
-                            <td class="mono">₹<?= number_format($row['total_billed'], 2) ?></td>
-                            <td class="mono c-teal">₹<?= number_format($row['total_collected'], 2) ?></td>
-                            <td class="mono <?= $diff > 0 ? 'c-red' : 'c-secondary' ?>">
+                            <td class="mono text-right">₹<?= number_format($row['total_billed'], 2) ?></td>
+                            <td class="mono c-teal text-right">₹<?= number_format($row['total_collected'], 2) ?></td>
+                            <td class="mono text-right <?= $diff > 0 ? 'c-red' : 'c-secondary' ?>">
                                 ₹<?= number_format($diff, 2) ?>
                             </td>
                             <td>

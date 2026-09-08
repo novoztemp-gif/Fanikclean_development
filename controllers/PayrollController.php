@@ -58,7 +58,12 @@ class PayrollController extends Controller {
         $clientId = $_GET['client_id'] ?? null;
         
         $siteScope = $this->isAdmin() ? ($siteId ?: null) : ($siteId ?: $this->getAssignedSiteIds());
-        
+
+        // Same sanity check as index(): a manager can't export a site outside their scope.
+        if (!$this->isAdmin() && $siteId && !$this->canAccessSite($siteId)) {
+            $siteScope = $this->getAssignedSiteIds();
+        }
+
         $payrollModel = new Payroll();
         $payrolls = $payrollModel->getAll($siteScope, $month, $clientId);
 

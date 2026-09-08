@@ -20,17 +20,20 @@ class Invoice {
         ";
         
         $params = [];
-        if (!empty($siteIds)) {
-            if (is_array($siteIds)) {
+        if (is_array($siteIds)) {
+            // A manager scoped to zero sites must see nothing -- not everything.
+            if (count($siteIds) === 0) {
+                $query .= " WHERE 1=0 ";
+            } else {
                 $placeholders = implode(',', array_fill(0, count($siteIds), '?'));
                 $query .= " WHERE b.site_id IN ($placeholders) ";
                 $params = $siteIds;
-            } else {
-                $query .= " WHERE b.site_id = ? ";
-                $params = [$siteIds];
             }
+        } elseif ($siteIds !== null) {
+            $query .= " WHERE b.site_id = ? ";
+            $params = [$siteIds];
         }
-        
+
         $query .= " ORDER BY i.id DESC";
         
         $stmt = $this->db->prepare($query);
@@ -48,17 +51,20 @@ class Invoice {
         ";
         
         $params = [];
-        if (!empty($siteIds)) {
-            if (is_array($siteIds)) {
+        if (is_array($siteIds)) {
+            // A manager scoped to zero sites must see nothing -- not everything.
+            if (count($siteIds) === 0) {
+                $query .= " AND 1=0 ";
+            } else {
                 $placeholders = implode(',', array_fill(0, count($siteIds), '?'));
                 $query .= " AND b.site_id IN ($placeholders) ";
                 $params = $siteIds;
-            } else {
-                $query .= " AND b.site_id = ? ";
-                $params = [$siteIds];
             }
+        } elseif ($siteIds !== null) {
+            $query .= " AND b.site_id = ? ";
+            $params = [$siteIds];
         }
-        
+
         $stmt = $this->db->prepare($query);
         $stmt->execute($params);
         return $stmt->fetchAll();

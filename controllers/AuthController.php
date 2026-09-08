@@ -26,6 +26,12 @@ class AuthController extends Controller {
             return;
         }
 
+        if ($user['status'] !== 'Active') {
+            $_SESSION['error'] = "This account has been " . ($user['status'] === 'Deleted' ? 'deleted' : 'suspended') . ". Contact an administrator.";
+            $this->redirect('/login');
+            return;
+        }
+
         // Enforce the Admin/Manager separation: the chosen tab must match the account's role.
         if ($selectedRole && (int)$user['role_id'] !== $selectedRole) {
             $roleName = $selectedRole === 1 ? 'Admin' : 'Manager';
@@ -38,6 +44,7 @@ class AuthController extends Controller {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['role_id'] = $user['role_id'];
         $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['user_email'] = $user['email'];
 
         // Load assigned site IDs for multi-site managers
         $_SESSION['assigned_site_ids'] = $userModel->getAssignedSiteIds($user['id']);

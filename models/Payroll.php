@@ -85,8 +85,11 @@ class Payroll {
             $params['cid'] = $clientId;
         }
 
-        if (!empty($siteIds)) {
-            if (is_array($siteIds)) {
+        if (is_array($siteIds)) {
+            // A manager scoped to zero sites must see nothing -- not everything.
+            if (count($siteIds) === 0) {
+                $query .= " AND 1=0 ";
+            } else {
                 $placeholders = [];
                 foreach ($siteIds as $i => $id) {
                     $key = "sid$i";
@@ -94,10 +97,10 @@ class Payroll {
                     $params[$key] = $id;
                 }
                 $query .= " AND w.site_id IN (" . implode(',', $placeholders) . ") ";
-            } else {
-                $query .= " AND w.site_id = :sid ";
-                $params['sid'] = $siteIds;
             }
+        } elseif ($siteIds !== null) {
+            $query .= " AND w.site_id = :sid ";
+            $params['sid'] = $siteIds;
         }
         
         $query .= " ORDER BY p.month_year DESC, w.full_name ASC";

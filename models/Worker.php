@@ -14,15 +14,18 @@ class Worker {
         ";
         
         $params = [];
-        if (!empty($siteIds)) {
-            if (is_array($siteIds)) {
+        if (is_array($siteIds)) {
+            // A manager scoped to zero sites must see nothing -- not everything.
+            if (count($siteIds) === 0) {
+                $query .= " WHERE 1=0 ";
+            } else {
                 $placeholders = implode(',', array_fill(0, count($siteIds), '?'));
                 $query .= " WHERE w.site_id IN ($placeholders) ";
                 $params = $siteIds;
-            } else {
-                $query .= " WHERE w.site_id = ? ";
-                $params = [$siteIds];
             }
+        } elseif ($siteIds !== null) {
+            $query .= " WHERE w.site_id = ? ";
+            $params = [$siteIds];
         }
         
         $query .= " ORDER BY w.id DESC";

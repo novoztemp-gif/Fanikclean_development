@@ -23,6 +23,10 @@ $router->get('/users', 'UserController', 'index');
 $router->get('/users/profile', 'UserController', 'profile');
 $router->post('/users/create', 'UserController', 'create');
 $router->post('/users/update', 'UserController', 'update');
+$router->post('/users/suspend', 'UserController', 'suspend');
+$router->post('/users/reactivate', 'UserController', 'reactivate');
+$router->post('/users/delete', 'UserController', 'delete');
+$router->post('/users/reset-password', 'UserController', 'resetPassword');
 $router->get('/users/assignments', 'ManagerSiteController', 'index');
 $router->post('/users/assignments/save', 'ManagerSiteController', 'assign');
 
@@ -33,16 +37,12 @@ $router->post('/clients/create', 'ClientController', 'create');
 // Attendance
 $router->get('/attendance', 'AttendanceController', 'index');
 $router->get('/attendance/register', 'AttendanceController', 'register');
+$router->get('/attendance/register/export', 'AttendanceController', 'exportRegister');
 $router->get('/attendance/manager', 'AttendanceController', 'managerAttendance');
 $router->get('/attendance/manager/register', 'AttendanceController', 'managerRegister');
 $router->post('/attendance/manager/save', 'AttendanceController', 'saveManagerAttendance');
 $router->get('/attendance/my', 'AttendanceController', 'viewMyAttendance');
 $router->post('/attendance/save', 'AttendanceController', 'saveBulk');
-
-// Leave
-$router->get('/leave', 'LeaveController', 'index');
-$router->post('/leave/create', 'LeaveController', 'create');
-$router->post('/leave/approve', 'LeaveController', 'approve');
 
 // Billing & Payroll
 $router->get('/billing', 'BillingController', 'index');
@@ -70,7 +70,6 @@ $router->get('/financial', 'FinancialController', 'index');
 $router->get('/rates', 'RateController', 'index');
 $router->post('/rates/updateDefault', 'RateController', 'updateDefault');
 $router->get('/audit', 'AuditController', 'index');
-$router->post('/leave/reject', 'LeaveController', 'reject');
 $router->get('/reports', 'ReportController', 'index');
 
 

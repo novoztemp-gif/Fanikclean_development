@@ -71,11 +71,11 @@
                 // [background, text] per status — applied to each <option> so the open
                 // dropdown shows every status in its own colour (not all one tint).
                 $statusColors = [
-                  'p'   => ['#dcfce7', '#15803d'], // green
-                  'off' => ['#fee2e2', '#b91c1c'], // red
-                  'h'   => ['#fef3c7', '#b45309'], // amber
-                  'pl'  => ['#dbeafe', '#1d4ed8'], // blue
-                  'sd'  => ['#ede9fe', '#6d28d9'], // purple
+                  'p'   => ['#E7F1EC', '#2F6B4F'], // green
+                  'off' => ['#FBEDEA', '#8C3324'], // red
+                  'h'   => ['#FBF1E0', '#7A5310'], // amber
+                  'pl'  => ['#EAF1F8', '#2E5478'], // blue
+                  'sd'  => ['#F1EEF7', '#4A3F72'], // purple
                 ];
               ?>
               <?php foreach ($workers as $w): ?>
@@ -236,11 +236,11 @@ function reloadFilter() {
 
 <style>
 .att-select { font-weight: 600; cursor: pointer; }
-.att-select.p   { background: #dcfce7 !important; color: #15803d !important; border-color: #4ade80 !important; }
-.att-select.off { background: #fee2e2 !important; color: #b91c1c !important; border-color: #f87171 !important; }
-.att-select.h   { background: #fef3c7 !important; color: #b45309 !important; border-color: #fbbf24 !important; }
-.att-select.pl  { background: #dbeafe !important; color: #1d4ed8 !important; border-color: #60a5fa !important; }
-.att-select.sd  { background: #ede9fe !important; color: #6d28d9 !important; border-color: #a78bfa !important; }
+.att-select.p   { background: #E7F1EC !important; color: #2F6B4F !important; border-color: #BFDDCB !important; }
+.att-select.off { background: #FBEDEA !important; color: #8C3324 !important; border-color: #E9C4BA !important; }
+.att-select.h   { background: #FBF1E0 !important; color: #7A5310 !important; border-color: #EBD2A0 !important; }
+.att-select.pl  { background: #EAF1F8 !important; color: #2E5478 !important; border-color: #B9D2E8 !important; }
+.att-select.sd  { background: #F1EEF7 !important; color: #4A3F72 !important; border-color: #D2C9E8 !important; }
 
 .cal-count { min-width: 22px; justify-content: center; }
 .cal-popup {

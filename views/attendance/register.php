@@ -7,11 +7,11 @@ $firstDow    = (int)date('N', strtotime($month . '-01')); // 1=Mon .. 7=Sun (unu
 // Status code -> [short label, background, text colour]. Mirrors the marking grid.
 // No "Absent" status — Off Duty is used instead.
 $codeMeta = [
-    'p'   => ['P',   '#dcfce7', '#15803d'],
-    'off' => ['Off', '#fee2e2', '#b91c1c'],
-    'h'   => ['H',   '#fef3c7', '#b45309'],
-    'pl'  => ['PL',  '#dbeafe', '#1d4ed8'],
-    'sd'  => ['SD',  '#ede9fe', '#6d28d9'],
+    'p'   => ['P',   '#E7F1EC', '#2F6B4F'],
+    'off' => ['Off', '#FBEDEA', '#8C3324'],
+    'h'   => ['H',   '#FBF1E0', '#7A5310'],
+    'pl'  => ['PL',  '#EAF1F8', '#2E5478'],
+    'sd'  => ['SD',  '#F1EEF7', '#4A3F72'],
 ];
 ?>
 <div class="panel active">
@@ -37,7 +37,11 @@ $codeMeta = [
           <?php endif; ?>
         </div>
 
-        <div style="margin-bottom: 2px;">
+        <div class="flex gap8" style="margin-bottom: 2px;">
+          <a href="/attendance/register/export?month=<?= htmlspecialchars($month) ?><?= $selectedSiteId ? '&site_id=' . htmlspecialchars($selectedSiteId) : '' ?>" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Export
+          </a>
           <a href="/attendance?from_date=<?= htmlspecialchars($month) ?>-01<?= $selectedSiteId ? '&site_id=' . htmlspecialchars($selectedSiteId) : '' ?>" class="btn btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
             Mark Attendance
@@ -114,12 +118,12 @@ $codeMeta = [
                 <td class="reg-cell reg-empty <?= $isWeekend ? 'reg-weekend' : '' ?>" title="<?= date('D, d M', strtotime(sprintf('%s-%02d', $month, $d))) ?> — not marked">–</td>
               <?php endif; ?>
               <?php endfor; ?>
-              <td class="reg-tot fw7" style="color:#15803d;"><?= $r['totals']['p'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#b91c1c;"><?= $r['totals']['off'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#b45309;"><?= $r['totals']['h'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#1d4ed8;"><?= $r['totals']['pl'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#6d28d9;"><?= $r['totals']['sd'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#3b82f6;"><?= $r['totals']['ot'] ? rtrim(rtrim(number_format($r['totals']['ot'], 1), '0'), '.') : '' ?></td>
+              <td class="reg-tot fw7" style="color:#2F6B4F;"><?= $r['totals']['p'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#8C3324;"><?= $r['totals']['off'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#7A5310;"><?= $r['totals']['h'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#2E5478;"><?= $r['totals']['pl'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#4A3F72;"><?= $r['totals']['sd'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#6B5127;"><?= $r['totals']['ot'] ? rtrim(rtrim(number_format($r['totals']['ot'], 1), '0'), '.') : '' ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
@@ -134,18 +138,18 @@ $codeMeta = [
 <style>
   .reg-scroll { overflow-x: auto; }
   .reg-table { border-collapse: separate; border-spacing: 0; font-size: 12px; width: max-content; min-width: 100%; }
-  .reg-table th, .reg-table td { border-bottom: 1px solid var(--border); border-right: 1px solid #f1f5f9; padding: 0; text-align: center; }
+  .reg-table th, .reg-table td { border-bottom: 1px solid var(--border); border-right: 1px solid #F0F0EF; padding: 0; text-align: center; }
   .reg-table thead th { position: sticky; top: 0; background: var(--card); z-index: 2; padding: 6px 0; font-weight: 700; color: var(--text-muted); }
   .reg-day { width: 30px; min-width: 30px; }
-  .reg-weekend { background: #f8fafc; color: #94a3b8; }
+  .reg-weekend { background: #F8F8F7; color: var(--text3); }
   .reg-cell { width: 30px; min-width: 30px; height: 34px; font-weight: 700; position: relative; }
-  .reg-empty { color: #cbd5e1; background: #fff; font-weight: 400; }
-  .reg-otdot { position: absolute; top: 1px; right: 3px; font-size: 12px; line-height: 1; color: #3b82f6; }
-  .reg-tot { width: 34px; min-width: 34px; padding: 0 4px; background: #fafafa; }
+  .reg-empty { color: var(--border2); background: #fff; font-weight: 400; }
+  .reg-otdot { position: absolute; top: 1px; right: 3px; font-size: 12px; line-height: 1; color: var(--primary-text); }
+  .reg-tot { width: 34px; min-width: 34px; padding: 0 4px; background: #FAFAFA; }
   /* sticky worker-name column */
   .reg-sticky { position: sticky; left: 0; z-index: 3; background: var(--card); }
   thead .reg-sticky { z-index: 4; }
   .reg-name { min-width: 210px; max-width: 210px; text-align: left; padding: 6px 12px; border-right: 2px solid var(--border); }
-  .reg-table tbody tr:hover td { background-color: #f9fafb; }
+  .reg-table tbody tr:hover td { background-color: #FAF9F6; }
   .reg-table tbody tr:hover .reg-cell[style] { filter: brightness(0.97); }
 </style>

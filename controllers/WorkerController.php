@@ -18,6 +18,7 @@ class WorkerController extends Controller {
         $sites = $db->query("SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
 
         $this->view('workers/index', [
+            'pageTitle' => 'Workers',
             'workers' => $workers,
             'categories' => $categories,
             'sites' => $sites,

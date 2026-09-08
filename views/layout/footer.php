@@ -10,7 +10,7 @@
   <span id="toast-msg">Action completed</span>
 </div>
 
-<script src="/js/app.js?v=<?= time() ?>"></script>
+<script src="/js/app.js?v=<?= filemtime(__DIR__ . '/../../js/app.js') ?>"></script>
 
 </body>
 </html>

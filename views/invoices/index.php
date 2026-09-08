@@ -11,8 +11,8 @@
                   <tr>
                     <th>Client / Organization</th>
                     <th>Billing Cycle</th>
-                    <th>Subtotal ₹</th>
-                    <th>Total (incl. GST)</th>
+                    <th class="text-right">Subtotal ₹</th>
+                    <th class="text-right">Total (incl. GST)</th>
                     <th class="text-right">Action</th>
                   </tr>
                 </thead>
@@ -24,8 +24,8 @@
                     <tr>
                         <td class="bold"><?= htmlspecialchars($b['company_name']) ?></td>
                         <td><span class="chip"><?= !empty($b['from_date']) ? date('d M', strtotime($b['from_date'])) . ' – ' . date('d M Y', strtotime($b['to_date'])) : htmlspecialchars($b['month_year']) ?></span></td>
-                        <td class="mono">₹<?= number_format($b['subtotal'], 2) ?></td>
-                        <td class="bold c-teal">₹<?= number_format($b['grand_total'], 2) ?></td>
+                        <td class="mono text-right">₹<?= number_format($b['subtotal'], 2) ?></td>
+                        <td class="bold c-teal text-right">₹<?= number_format($b['grand_total'], 2) ?></td>
                         <td class="text-right">
                             <form method="POST" action="/invoices/generate" style="margin:0;">
                                 <input type="hidden" name="billing_id" value="<?= $b['id'] ?>">
@@ -55,7 +55,7 @@
                     <th>Invoice #</th>
                     <th>Client Organization</th>
                     <th>Issued on</th>
-                    <th>Amount ₹</th>
+                    <th class="text-right">Amount ₹</th>
                     <th>Status</th>
                     <th class="text-right">Operations</th>
                   </tr>
@@ -69,7 +69,7 @@
                         <td class="mono bold"><?= htmlspecialchars($inv['invoice_no']) ?></td>
                         <td class="fw6"><?= htmlspecialchars($inv['company_name']) ?></td>
                         <td class="c-secondary"><?= date('d M, Y', strtotime($inv['issue_date'])) ?></td>
-                        <td class="bold">₹<?= number_format($inv['amount'], 2) ?></td>
+                        <td class="bold text-right">₹<?= number_format($inv['amount'], 2) ?></td>
                         <td>
                             <span class="badge <?= $inv['status'] === 'Paid' ? 'b-green' : 'b-amber' ?>">
                                 <?= htmlspecialchars($inv['status']) ?>

@@ -5,11 +5,11 @@ $daysInMonth = (int)date('t', strtotime($month . '-01'));
 
 // Manager statuses (no Absent, no OT): code -> [short label, background, text].
 $codeMeta = [
-    'p'   => ['P',   '#dcfce7', '#15803d'],
-    'h'   => ['H',   '#fef3c7', '#b45309'],
-    'off' => ['Off', '#e2e8f0', '#475569'],
-    'pl'  => ['PL',  '#dbeafe', '#1d4ed8'],
-    'sd'  => ['SD',  '#ede9fe', '#6d28d9'],
+    'p'   => ['P',   '#E7F1EC', '#2F6B4F'],
+    'h'   => ['H',   '#FBF1E0', '#7A5310'],
+    'off' => ['Off', '#EEEFF0', '#52565B'],
+    'pl'  => ['PL',  '#EAF1F8', '#2E5478'],
+    'sd'  => ['SD',  '#F1EEF7', '#4A3F72'],
 ];
 $codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','sd'=>'Special Duty'];
 ?>
@@ -95,11 +95,11 @@ $codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave'
                 <td class="reg-cell reg-empty <?= $isWeekend ? 'reg-weekend' : '' ?>" title="<?= date('D, d M', strtotime(sprintf('%s-%02d', $month, $d))) ?> — not marked">–</td>
               <?php endif; ?>
               <?php endfor; ?>
-              <td class="reg-tot fw7" style="color:#15803d;"><?= $r['totals']['p'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#b45309;"><?= $r['totals']['h'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#475569;"><?= $r['totals']['off'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#1d4ed8;"><?= $r['totals']['pl'] ?: '' ?></td>
-              <td class="reg-tot fw7" style="color:#6d28d9;"><?= $r['totals']['sd'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#2F6B4F;"><?= $r['totals']['p'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#7A5310;"><?= $r['totals']['h'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#52565B;"><?= $r['totals']['off'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#2E5478;"><?= $r['totals']['pl'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#4A3F72;"><?= $r['totals']['sd'] ?: '' ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
@@ -114,16 +114,16 @@ $codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave'
 <style>
   .reg-scroll { overflow-x: auto; }
   .reg-table { border-collapse: separate; border-spacing: 0; font-size: 12px; width: max-content; min-width: 100%; }
-  .reg-table th, .reg-table td { border-bottom: 1px solid var(--border); border-right: 1px solid #f1f5f9; padding: 0; text-align: center; }
+  .reg-table th, .reg-table td { border-bottom: 1px solid var(--border); border-right: 1px solid #F0F0EF; padding: 0; text-align: center; }
   .reg-table thead th { position: sticky; top: 0; background: var(--card); z-index: 2; padding: 6px 0; font-weight: 700; color: var(--text-muted); }
   .reg-day { width: 30px; min-width: 30px; }
-  .reg-weekend { background: #f8fafc; color: #94a3b8; }
+  .reg-weekend { background: #F8F8F7; color: var(--text3); }
   .reg-cell { width: 30px; min-width: 30px; height: 34px; font-weight: 700; }
-  .reg-empty { color: #cbd5e1; background: #fff; font-weight: 400; }
-  .reg-tot { width: 34px; min-width: 34px; padding: 0 4px; background: #fafafa; }
+  .reg-empty { color: var(--border2); background: #fff; font-weight: 400; }
+  .reg-tot { width: 34px; min-width: 34px; padding: 0 4px; background: #FAFAFA; }
   .reg-sticky { position: sticky; left: 0; z-index: 3; background: var(--card); }
   thead .reg-sticky { z-index: 4; }
   .reg-name { min-width: 210px; max-width: 210px; text-align: left; padding: 6px 12px; border-right: 2px solid var(--border); }
-  .reg-table tbody tr:hover td { background-color: #f9fafb; }
+  .reg-table tbody tr:hover td { background-color: #FAF9F6; }
   .reg-table tbody tr:hover .reg-cell[style] { filter: brightness(0.97); }
 </style>

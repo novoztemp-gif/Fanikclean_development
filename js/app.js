@@ -112,21 +112,157 @@ function openEditUserModal(u) {
     if (!form) return;
     document.getElementById('edit-user-id').value = u.id;
     document.getElementById('edit-user-name').value = u.full_name;
+    document.getElementById('edit-user-email').value = u.email;
     document.getElementById('edit-user-role').value = u.role_id;
-    document.getElementById('edit-user-status').value = u.status;
 
-    // Pre-select the manager's assigned sites in the multi-select.
-    var sitesSel = document.getElementById('edit-user-sites');
-    if (sitesSel) {
+    // Pre-check the manager's assigned sites in the checkbox grid.
+    var sitesList = document.getElementById('edituser-sites-list');
+    if (sitesList) {
         var assigned = (u.assigned_site_ids_csv || '').split(',').filter(Boolean);
-        Array.prototype.forEach.call(sitesSel.options, function (opt) {
-            opt.selected = assigned.indexOf(opt.value) !== -1;
+        sitesList.querySelectorAll('.site-chk').forEach(function (chk) {
+            chk.checked = assigned.indexOf(chk.value) !== -1;
         });
+        document.getElementById('edituser-site-search').value = '';
+        filterSiteCheckboxes('edituser');
+        updateSiteCheckboxCount('edituser');
     }
-    
+
     document.getElementById('edit-user-guardian_name').value = u.guardian_name || '';
     document.getElementById('edit-user-guardian_phone').value = u.guardian_phone || '';
     document.getElementById('edit-user-guardian_place').value = u.guardian_place || '';
-    
+
     openModal('modal-edit-user');
 }
+
+// ---- Site-picker: search + grid checkboxes (Site Assignments, User edit modal) ----
+// Each instance is addressed by a prefix, e.g. "assign" -> #assign-sites-list,
+// #assign-site-search, #assign-site-count, #assign-sites-empty.
+function filterSiteCheckboxes(prefix) {
+    var search = document.getElementById(prefix + '-site-search');
+    var q = search ? search.value.trim().toLowerCase() : '';
+    var list = document.getElementById(prefix + '-sites-list');
+    if (!list) return;
+    var visibleCount = 0;
+    list.querySelectorAll('.site-picker-item').forEach(function (item) {
+        var match = !q || (item.dataset.siteName || '').indexOf(q) !== -1;
+        item.hidden = !match;
+        if (match) visibleCount++;
+    });
+    var empty = document.getElementById(prefix + '-sites-empty');
+    if (empty) empty.hidden = visibleCount !== 0;
+}
+
+function updateSiteCheckboxCount(prefix) {
+    var list = document.getElementById(prefix + '-sites-list');
+    if (!list) return;
+    var count = list.querySelectorAll('.site-chk:checked').length;
+    var el = document.getElementById(prefix + '-site-count');
+    if (el) el.textContent = count;
+}
+
+function siteCheckboxSelectAll(prefix, select) {
+    var list = document.getElementById(prefix + '-sites-list');
+    if (!list) return;
+    list.querySelectorAll('.site-picker-item').forEach(function (item) {
+        if (item.hidden) return; // only affect what the current search shows
+        var chk = item.querySelector('.site-chk');
+        if (chk) chk.checked = select;
+    });
+    updateSiteCheckboxCount(prefix);
+}
+
+// ---- Credential management ----
+function openSetPasswordModal(userId, fullName) {
+    closeModal('modal-credentials');
+    document.getElementById('set-password-form').reset();
+    document.getElementById('setpw-user-id').value = userId;
+    document.getElementById('setpw-user-name').textContent = fullName;
+    openModal('modal-set-password');
+}
+
+function validateSetPasswordForm() {
+    var pw = document.getElementById('setpw-password').value;
+    var confirm = document.getElementById('setpw-password-confirm').value;
+    if (pw !== confirm) {
+        toast('Passwords do not match', 'error');
+        return false;
+    }
+    if (pw.length < 6) {
+        toast('Password must be at least 6 characters', 'error');
+        return false;
+    }
+    return true;
+}
+
+// ---- Topbar user menu ----
+function toggleUserMenu() {
+    document.getElementById('user-menu').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+    var menu = document.getElementById('user-menu');
+    if (menu && menu.classList.contains('open') && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+    }
+});
+
+// ---- Sidebar "Finance" show all / hide ----
+function toggleFinanceNav() {
+    var box = document.getElementById('finance-collapse');
+    var label = document.getElementById('finance-toggle-label');
+    var chevron = document.querySelector('#finance-toggle svg');
+    if (!box) return;
+    var willShow = box.hidden;
+    box.hidden = !willShow;
+    label.textContent = willShow ? 'Hide' : 'Show all';
+    chevron.style.transform = willShow ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+// ---- Stat strip count-up ----
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.stat-val[data-count]').forEach(function (el, i) {
+        var target = parseInt(el.dataset.count, 10) || 0;
+        var prefix = el.dataset.prefix || '';
+        var start = performance.now();
+        var dur = 700 + Math.min(i, 3) * 120;
+        var delay = i * 70;
+        setTimeout(function () {
+            function frame(now) {
+                var t = Math.min(1, (now - start) / dur);
+                var eased = 1 - Math.pow(1 - t, 3);
+                el.textContent = prefix + Math.round(target * eased).toLocaleString('en-IN');
+                if (t < 1) requestAnimationFrame(frame);
+            }
+            start = performance.now();
+            requestAnimationFrame(frame);
+        }, delay);
+    });
+});
+
+// ---- Sidebar nav hover spotlight ----
+// A soft highlight glides between nav items within a section on hover,
+// resting on the active item (if any) the rest of the time.
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.nav-section').forEach(function (section) {
+        var spot = section.querySelector('.nav-spot');
+        var items = section.querySelectorAll('.nav-item');
+        if (!spot || !items.length) return;
+
+        function place(el) {
+            spot.style.transform = 'translateY(' + el.offsetTop + 'px)';
+            spot.style.height = el.offsetHeight + 'px';
+        }
+        var activeEl = section.querySelector('.nav-item.active');
+        if (activeEl) place(activeEl);
+
+        items.forEach(function (item) {
+            item.addEventListener('mouseenter', function () {
+                section.classList.add('hovering');
+                place(item);
+            });
+        });
+        section.addEventListener('mouseleave', function () {
+            section.classList.remove('hovering');
+            if (activeEl) place(activeEl);
+        });
+    });
+});

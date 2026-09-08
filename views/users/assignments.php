@@ -49,7 +49,7 @@
 
   <!-- ASSIGNMENT MODAL -->
   <div class="modal-overlay" id="modal-assignments">
-    <div class="modal">
+    <div class="modal modal-lg">
       <div class="modal-head">
         <div class="modal-title">Site Assignments: <span id="assign-mgr-name" class="c-primary"></span></div>
         <button type="button" class="modal-close" onclick="closeModal('modal-assignments')">×</button>
@@ -57,17 +57,22 @@
 
       <form method="POST" action="/users/assignments/save">
         <input type="hidden" name="user_id" id="assign-user-id">
-        
+
         <div style="padding: 24px;">
-          <label class="form-label mb12">Select Sites for this Manager</label>
-          <div class="flex flex-col gap8" style="max-height: 300px; overflow-y: auto; padding: 4px;">
+          <div class="flex-between mb12" style="flex-wrap: wrap; gap: 8px;">
+            <label class="form-label" style="margin:0;">Select Sites for this Manager</label>
+            <div class="fs11 c-secondary"><b id="assign-site-count">0</b> selected · <a href="#" onclick="siteCheckboxSelectAll('assign', true); return false;" style="color:var(--primary-text);">select visible</a> · <a href="#" onclick="siteCheckboxSelectAll('assign', false); return false;" style="color:var(--primary-text);">clear all</a></div>
+          </div>
+          <input type="text" class="form-input mb12" id="assign-site-search" placeholder="Search sites by name..." oninput="filterSiteCheckboxes('assign')">
+          <div id="assign-sites-list" class="site-picker-grid">
             <?php foreach($sites as $s): ?>
-            <label class="flex items-center gap12 p8 border rounded hover-bg" style="cursor: pointer; border-color: var(--border-color);">
-              <input type="checkbox" name="site_ids[]" value="<?= $s['id'] ?>" class="site-chk" id="site-<?= $s['id'] ?>">
-              <span class="fs14"><?= htmlspecialchars($s['name']) ?></span>
+            <label class="site-picker-item" data-site-name="<?= htmlspecialchars(strtolower($s['name'])) ?>">
+              <input type="checkbox" name="site_ids[]" value="<?= $s['id'] ?>" class="site-chk" id="site-<?= $s['id'] ?>" onchange="updateSiteCheckboxCount('assign')">
+              <span class="fs13"><?= htmlspecialchars($s['name']) ?></span>
             </label>
             <?php endforeach; ?>
           </div>
+          <div id="assign-sites-empty" class="fs12 c-secondary text-center" style="padding: 16px;" hidden>No sites match your search.</div>
           <p class="fs11 c-secondary mt16">Check all sites the manager is responsible for. Clearing all will restrict the manager to no site access.</p>
         </div>
 
@@ -84,20 +89,18 @@
 function openAssignmentModal(m) {
     document.getElementById('assign-user-id').value = m.id;
     document.getElementById('assign-mgr-name').textContent = m.full_name;
-    
-    // Clear all checkboxes first
-    document.querySelectorAll('.site-chk').forEach(chk => {
-        chk.checked = false;
-    });
-    
-    // Check assigned sites
-    if(m.assigned_site_ids) {
+    document.getElementById('assign-site-search').value = '';
+
+    document.querySelectorAll('#assign-sites-list .site-chk').forEach(chk => { chk.checked = false; });
+    if (m.assigned_site_ids) {
         m.assigned_site_ids.forEach(sid => {
             const el = document.getElementById('site-' + sid);
-            if(el) el.checked = true;
+            if (el) el.checked = true;
         });
     }
-    
+    filterSiteCheckboxes('assign');
+    updateSiteCheckboxCount('assign');
+
     openModal('modal-assignments');
 }
 </script>

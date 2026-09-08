@@ -40,8 +40,19 @@ class Controller {
         }
     }
 
+    /**
+     * A manager's site scope, read fresh from the DB on every call rather than
+     * trusting a session cache. If an Admin changes a manager's assignments
+     * while that manager is already logged in, this makes sure they see the
+     * new scope on their very next request instead of the stale one from
+     * login -- no re-login required.
+     */
     protected function getAssignedSiteIds() {
-        return $_SESSION['assigned_site_ids'] ?? [];
+        if (!isset($_SESSION['user_id'])) return [];
+        require_once __DIR__ . '/../models/User.php';
+        $siteIds = (new User())->getAssignedSiteIds($_SESSION['user_id']);
+        $_SESSION['assigned_site_ids'] = $siteIds; // kept in sync for any legacy direct reads
+        return $siteIds;
     }
 
     protected function canAccessSite($siteId) {
@@ -51,7 +62,8 @@ class Controller {
 
     protected function getSiteId() {
         // Deprecated: multi-site support uses getAssignedSiteIds()
-        return $_SESSION['assigned_site_ids'][0] ?? null;
+        $ids = $this->getAssignedSiteIds();
+        return $ids[0] ?? null;
     }
 
     /**
