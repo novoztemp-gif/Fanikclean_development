@@ -41,6 +41,54 @@ class Invoice {
         return $stmt->fetchAll();
     }
 
+    // Same result as getPendingBilling() + getAllInvoices() for the same scope, in one round trip.
+    public function getPendingAndInvoices($siteIds = null) {
+        $scoped = is_array($siteIds);
+        $noAccess = $scoped && count($siteIds) === 0;
+
+        $params = [];
+        if (!$noAccess && $scoped) {
+            $params['site_ids'] = '{' . implode(',', array_map('intval', $siteIds)) . '}';
+        }
+
+        $pendingJson = "'[]'::json";
+        $invoicesJson = "'[]'::json";
+        if (!$noAccess) {
+            $billingFilter = $scoped ? 'AND b.site_id = ANY(:site_ids::int[])' : '';
+            $invoiceFilter = $scoped ? 'WHERE b.site_id = ANY(:site_ids::int[])' : '';
+
+            $pendingJson = "(SELECT COALESCE(json_agg(p), '[]'::json) FROM (
+                SELECT b.*, c.company_name, s.name as site_name, b.from_date, b.to_date
+                FROM billing b
+                JOIN clients c ON b.client_id = c.id
+                JOIN sites s ON b.site_id = s.id
+                WHERE b.status != 'Invoiced' $billingFilter
+            ) p)";
+
+            $invoicesJson = "(SELECT COALESCE(json_agg(v), '[]'::json) FROM (
+                SELECT i.invoice_no, i.issue_date, i.amount, i.status,
+                       COALESCE(c.company_name, '— Unlinked (no billing record)') AS company_name,
+                       b.month_year, b.from_date, b.to_date, s.name as site_name
+                FROM invoices i
+                LEFT JOIN billing b ON i.billing_id = b.id
+                LEFT JOIN clients c ON b.client_id = c.id
+                LEFT JOIN sites s ON b.site_id = s.id
+                $invoiceFilter
+                ORDER BY i.id DESC
+            ) v)";
+        }
+
+        $sql = "SELECT $pendingJson AS pending_json, $invoicesJson AS invoices_json";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+
+        return [
+            'pending' => json_decode($row['pending_json'], true) ?: [],
+            'invoices' => json_decode($row['invoices_json'], true) ?: [],
+        ];
+    }
+
     public function getPendingBilling($siteIds = null) {
         $query = "
             SELECT b.*, c.company_name, s.name as site_name, b.from_date, b.to_date 
@@ -68,6 +116,58 @@ class Invoice {
         $stmt = $this->db->prepare($query);
         $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+
+    // Same result as getPendingBilling() + the Billing page's client/site dropdowns, in one round trip.
+    // $siteScope: null (admin, unscoped) or array (manager; [] = no access).
+    public function getPendingBillingWithDropdowns($siteScope) {
+        $scoped = is_array($siteScope);
+        $noAccess = $scoped && count($siteScope) === 0;
+
+        $params = [];
+        if (!$noAccess && $scoped) {
+            $params['site_ids'] = '{' . implode(',', array_map('intval', $siteScope)) . '}';
+        }
+
+        $pendingJson = "'[]'::json";
+        if (!$noAccess) {
+            $billingSiteFilter = $scoped ? 'AND b.site_id = ANY(:site_ids::int[])' : '';
+            $pendingJson = "(SELECT COALESCE(json_agg(p), '[]'::json) FROM (
+                SELECT b.*, c.company_name, s.name as site_name, b.from_date, b.to_date
+                FROM billing b
+                JOIN clients c ON b.client_id = c.id
+                JOIN sites s ON b.site_id = s.id
+                WHERE b.status != 'Invoiced' $billingSiteFilter
+            ) p)";
+        }
+
+        $sitesJson = "'[]'::json";
+        $clientsJson = "'[]'::json";
+        if (!$scoped) {
+            // Admin: all active sites, all clients.
+            $sitesJson = "(SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name) x)";
+            $clientsJson = "(SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT * FROM clients ORDER BY id DESC) x)";
+        } elseif (!$noAccess) {
+            // Manager: sites limited to their assignment, clients that own those sites.
+            $sitesJson = "(SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name, client_id FROM sites WHERE is_active = TRUE AND id = ANY(:site_ids::int[]) ORDER BY name) x)";
+            $clientsJson = "(SELECT COALESCE(json_agg(x), '[]'::json) FROM (
+                SELECT DISTINCT c.id, c.company_name
+                FROM clients c JOIN sites s ON s.client_id = c.id
+                WHERE s.id = ANY(:site_ids::int[]) ORDER BY c.company_name
+            ) x)";
+        }
+
+        $sql = "SELECT $pendingJson AS pending_json, $clientsJson AS clients_json, $sitesJson AS sites_json";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+
+        return [
+            'pending' => json_decode($row['pending_json'], true) ?: [],
+            'clients' => json_decode($row['clients_json'], true) ?: [],
+            'sites' => json_decode($row['sites_json'], true) ?: [],
+        ];
     }
 
     public function generateFromBilling($billingId, $templateId = null) {

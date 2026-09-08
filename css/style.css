@@ -410,6 +410,7 @@ td.amber { color: var(--amber); font-weight: 700; }
   border: 1px solid var(--border);
   border-radius: 4px;
 }
+.manage-site-row[hidden] { display: none; }
 
 /* Checkbox site-picker: search + grid, used by Site Assignments and the
    User Management edit modal instead of a long native <select multiple>. */

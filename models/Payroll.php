@@ -64,6 +64,64 @@ class Payroll {
             return false;
         }
     }
+    // Same result as getAll() + the clients/sites dropdown lookups, in one round trip.
+    // $siteScope: null (admin, unfiltered), int/string (single site), or array (manager scope; [] = no access).
+    // $sitesDropdownIds: null (admin -> all active sites) or array of ids to restrict the sites dropdown to.
+    public function getAllWithDropdowns($siteScope, $month, $clientId, $sitesDropdownIds) {
+        $params = ['month' => $month];
+
+        $payrollFilter = '';
+        if ($clientId) {
+            $payrollFilter .= " AND s.client_id = :cid ";
+            $params['cid'] = $clientId;
+        }
+        if (is_array($siteScope)) {
+            if (count($siteScope) === 0) {
+                $payrollFilter .= " AND 1=0 ";
+            } else {
+                $params['payroll_site_ids'] = '{' . implode(',', array_map('intval', $siteScope)) . '}';
+                $payrollFilter .= " AND w.site_id = ANY(:payroll_site_ids::int[]) ";
+            }
+        } elseif ($siteScope !== null) {
+            $params['sid'] = $siteScope;
+            $payrollFilter .= " AND w.site_id = :sid ";
+        }
+
+        $sitesFilter = '';
+        if (is_array($sitesDropdownIds)) {
+            if (count($sitesDropdownIds) === 0) {
+                $sitesFilter = ' AND 1=0 ';
+            } else {
+                $params['dropdown_site_ids'] = '{' . implode(',', array_map('intval', $sitesDropdownIds)) . '}';
+                $sitesFilter = ' AND id = ANY(:dropdown_site_ids::int[]) ';
+            }
+        }
+
+        $sql = "SELECT
+            (SELECT COALESCE(json_agg(p), '[]'::json) FROM (
+                SELECT pr.*, w.full_name as name, wc.name as category_name, s.name as site_name, s.client_id
+                FROM payroll pr
+                JOIN workers w ON pr.worker_id = w.id
+                JOIN worker_categories wc ON w.category_id = wc.id
+                JOIN sites s ON w.site_id = s.id
+                WHERE pr.month_year = :month $payrollFilter
+                ORDER BY pr.month_year DESC, w.full_name ASC
+            ) p) AS payroll_json,
+            (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, company_name FROM clients ORDER BY company_name) x) AS clients_json,
+            (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name, client_id FROM sites WHERE is_active = TRUE $sitesFilter ORDER BY name) x) AS sites_json
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+
+        return [
+            'payrolls' => json_decode($row['payroll_json'], true) ?: [],
+            'clients' => json_decode($row['clients_json'], true) ?: [],
+            'sites' => json_decode($row['sites_json'], true) ?: [],
+        ];
+    }
+
     public function getAll($siteIds = null, $month = null, $clientId = null) {
         $query = "
             SELECT p.*, w.full_name as name, wc.name as category_name, s.name as site_name, s.client_id

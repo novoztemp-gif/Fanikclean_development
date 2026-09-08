@@ -8,11 +8,10 @@ class UserController extends Controller {
 
     public function index() {
         $userModel = new User();
-        $users = $userModel->getAll();
-        
-        $db = Database::connect();
-        $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
-        $roles = $db->query("SELECT id, name FROM roles ORDER BY id")->fetchAll();
+        $data = $userModel->getAllWithDropdowns();
+        $users = $data['users'];
+        $sites = $data['sites'];
+        $roles = $data['roles'];
 
         $this->view('users/index', [
             'pageTitle' => 'User Management',

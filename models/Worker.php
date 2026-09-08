@@ -35,6 +35,49 @@ class Worker {
         return $stmt->fetchAll();
     }
 
+    // Same result as getAll($siteIds) + the 3 Workers-page dropdown lookups, in one round trip.
+    public function getAllWithDropdowns($siteIds = null) {
+        $scoped = is_array($siteIds);
+        $noAccess = $scoped && count($siteIds) === 0;
+
+        $params = [];
+        $siteFilter = '';
+        if (!$noAccess && $scoped) {
+            $params['site_ids'] = '{' . implode(',', array_map('intval', $siteIds)) . '}';
+            $siteFilter = 'AND w.site_id = ANY(:site_ids::int[])';
+        }
+
+        $workersJson = "'[]'::json";
+        if (!$noAccess) {
+            $workersJson = "(SELECT COALESCE(json_agg(w), '[]'::json) FROM (
+                SELECT wk.*, c.name as category_name, s.name as site_name
+                FROM workers wk
+                LEFT JOIN worker_categories c ON wk.category_id = c.id
+                LEFT JOIN sites s ON wk.site_id = s.id
+                WHERE 1=1 " . str_replace('w.site_id', 'wk.site_id', $siteFilter) . "
+                ORDER BY wk.id DESC
+            ) w)";
+        }
+
+        $sql = "SELECT
+            $workersJson AS workers_json,
+            (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, company_name FROM clients WHERE status = 'Active' ORDER BY company_name) x) AS clients_json,
+            (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name FROM worker_categories ORDER BY id) x) AS categories_json,
+            (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name) x) AS sites_json
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+
+        return [
+            'workers' => json_decode($row['workers_json'], true) ?: [],
+            'clients' => json_decode($row['clients_json'], true) ?: [],
+            'categories' => json_decode($row['categories_json'], true) ?: [],
+            'sites' => json_decode($row['sites_json'], true) ?: [],
+        ];
+    }
+
     public function getById($id) {
         $stmt = $this->db->prepare("
             SELECT w.*, c.name as category_name, s.name as site_name 

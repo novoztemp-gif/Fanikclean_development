@@ -9,9 +9,10 @@ class InvoiceController extends Controller {
     public function index() {
         $invModel = new Invoice();
         $siteScope = $this->isAdmin() ? null : $this->getAssignedSiteIds();
-        
-        $pendingBills = $invModel->getPendingBilling($siteScope);
-        $invoices = $invModel->getAllInvoices($siteScope);
+
+        $data = $invModel->getPendingAndInvoices($siteScope);
+        $pendingBills = $data['pending'];
+        $invoices = $data['invoices'];
 
         $this->view('invoices/index', [
             'pageTitle' => 'Financial: Billing & Invoicing',

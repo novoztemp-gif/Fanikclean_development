@@ -10,6 +10,25 @@ class Client {
         return $stmt->fetchAll();
     }
 
+    // Same result as getAll() + getSitesByClientId() per client, in one round trip.
+    public function getAllWithSites() {
+        $stmt = $this->db->query("
+            SELECT c.*,
+                COALESCE((
+                    SELECT json_agg(s.* ORDER BY s.name)
+                    FROM sites s WHERE s.client_id = c.id
+                ), '[]'::json) AS sites_json
+            FROM clients c
+            ORDER BY c.id DESC
+        ");
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$r) {
+            $r['sites'] = json_decode($r['sites_json'], true) ?: [];
+            unset($r['sites_json']);
+        }
+        return $rows;
+    }
+
     public function create($data) {
         $stmt = $this->db->prepare("
             INSERT INTO clients (company_name, contact_person, mobile, email, gstin, address, contract_start, contract_end, billing_cycle) 

@@ -8,14 +8,13 @@ class WorkerController extends Controller {
 
     public function index() {
         $workerModel = new Worker();
-        $db = Database::connect();
-        
+
         $siteScope = $this->isAdmin() ? null : $this->getAssignedSiteIds();
-        $workers = $workerModel->getAll($siteScope);
-        
-        $clients = $db->query("SELECT id, company_name FROM clients WHERE status = 'Active' ORDER BY company_name")->fetchAll();
-        $categories = $db->query("SELECT id, name FROM worker_categories ORDER BY id")->fetchAll();
-        $sites = $db->query("SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
+        $data = $workerModel->getAllWithDropdowns($siteScope);
+        $workers = $data['workers'];
+        $clients = $data['clients'];
+        $categories = $data['categories'];
+        $sites = $data['sites'];
 
         $this->view('workers/index', [
             'pageTitle' => 'Workers',

@@ -21,9 +21,9 @@ class AttendanceController extends Controller {
         } else {
             // Read assignments live from the DB — the login-time session snapshot
             // goes stale when an Admin assigns sites after the manager logged in.
-            $userModel = new User();
-            $scopeSiteIds = $userModel->getAssignedSiteIds($_SESSION['user_id']);
-            $_SESSION['assigned_site_ids'] = $scopeSiteIds;
+            // Memoized per-request, so this is shared for free with the sidebar's
+            // own scope lookup on the same page load.
+            $scopeSiteIds = $this->getAssignedSiteIds();
             if (empty($scopeSiteIds)) {
                 $sites = [];
             } else {
@@ -102,9 +102,7 @@ class AttendanceController extends Controller {
             $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
             $scopeSiteIds = null;
         } else {
-            $userModel = new User();
-            $scopeSiteIds = $userModel->getAssignedSiteIds($_SESSION['user_id']);
-            $_SESSION['assigned_site_ids'] = $scopeSiteIds;
+            $scopeSiteIds = $this->getAssignedSiteIds();
             if (empty($scopeSiteIds)) {
                 $sites = [];
             } else {
@@ -140,12 +138,7 @@ class AttendanceController extends Controller {
         if (!preg_match('/^\d{4}-\d{2}$/', $month)) { $month = date('Y-m'); }
         $filterSiteId = $_GET['site_id'] ?? null;
 
-        if ($this->isAdmin()) {
-            $scopeSiteIds = null;
-        } else {
-            $userModel = new User();
-            $scopeSiteIds = $userModel->getAssignedSiteIds($_SESSION['user_id']);
-        }
+        $scopeSiteIds = $this->isAdmin() ? null : $this->getAssignedSiteIds();
 
         $attModel = new Attendance();
         $rows = $attModel->getMonthlyRegister($month, $scopeSiteIds, $filterSiteId);
@@ -274,9 +267,7 @@ class AttendanceController extends Controller {
             // is saved under their own site (the grid spans multiple sites now).
             $allowedSiteIds = null;
             if (!$this->isAdmin()) {
-                $userModel = new User();
-                $allowedSiteIds = $userModel->getAssignedSiteIds($_SESSION['user_id']);
-                $_SESSION['assigned_site_ids'] = $allowedSiteIds;
+                $allowedSiteIds = $this->getAssignedSiteIds();
             }
 
             $attModel = new Attendance();

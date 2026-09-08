@@ -8,40 +8,13 @@ class BillingController extends Controller {
 
     public function index() {
         require_once __DIR__ . '/../models/Invoice.php';
-        require_once __DIR__ . '/../models/Client.php';
         $invModel = new Invoice();
-        $clientModel = new Client();
 
         $siteScope = $this->isAdmin() ? null : $this->getAssignedSiteIds();
-        $pending = $invModel->getPendingBilling($siteScope);
-
-        $db = Database::connect();
-
-        // Scope the Client/Site form dropdowns: admin sees all; a manager sees
-        // only their assigned sites and the clients that own them.
-        if ($this->isAdmin()) {
-            $clients = $clientModel->getAll();
-            $sites = $db->query("SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
-        } else {
-            $assigned = $this->getAssignedSiteIds();
-            if (!empty($assigned)) {
-                $ph = implode(',', array_fill(0, count($assigned), '?'));
-                $sStmt = $db->prepare("SELECT id, name, client_id FROM sites WHERE id IN ($ph) AND is_active = TRUE ORDER BY name");
-                $sStmt->execute(array_values($assigned));
-                $sites = $sStmt->fetchAll();
-
-                $cStmt = $db->prepare("
-                    SELECT DISTINCT c.id, c.company_name
-                    FROM clients c JOIN sites s ON s.client_id = c.id
-                    WHERE s.id IN ($ph) ORDER BY c.company_name
-                ");
-                $cStmt->execute(array_values($assigned));
-                $clients = $cStmt->fetchAll();
-            } else {
-                $sites = [];
-                $clients = [];
-            }
-        }
+        $data = $invModel->getPendingBillingWithDropdowns($siteScope);
+        $pending = $data['pending'];
+        $clients = $data['clients'];
+        $sites = $data['sites'];
 
         $this->view('billing/index', [
             'pageTitle' => 'Billing Engine',

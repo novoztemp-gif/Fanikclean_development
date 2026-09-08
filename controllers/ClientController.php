@@ -8,12 +8,7 @@ class ClientController extends Controller {
 
     public function index() {
         $clientModel = new Client();
-        $clients = $clientModel->getAll();
-        
-        // Fetch sites for each client
-        foreach ($clients as &$c) {
-            $c['sites'] = $clientModel->getSitesByClientId($c['id']);
-        }
+        $clients = $clientModel->getAllWithSites();
 
         $this->view('clients/index', [
             'pageTitle' => 'Clients & Sites',

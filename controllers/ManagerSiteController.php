@@ -7,16 +7,27 @@ class ManagerSiteController extends Controller {
     }
 
     public function index() {
-        $userModel = new User();
-        $managers = $userModel->getManagers();
-        
         $db = Database::connect();
-        $sites = $db->query("SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
+        $row = $db->query("
+            SELECT
+                (SELECT COALESCE(json_agg(m), '[]'::json) FROM (
+                    SELECT u.*, r.name as role_name,
+                        COALESCE((
+                            SELECT json_agg(usa.site_id)
+                            FROM user_site_assignments usa WHERE usa.user_id = u.id
+                        ), '[]'::json) AS assigned_site_ids
+                    FROM users u
+                    JOIN roles r ON u.role_id = r.id
+                    WHERE u.role_id = 2 AND u.status = 'Active'
+                    ORDER BY u.full_name ASC
+                ) m) AS managers_json,
+                (SELECT COALESCE(json_agg(s), '[]'::json) FROM (
+                    SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name
+                ) s) AS sites_json
+        ")->fetch();
 
-        // Get current assignments for each manager
-        foreach ($managers as &$m) {
-            $m['assigned_site_ids'] = $userModel->getAssignedSiteIds($m['id']);
-        }
+        $managers = json_decode($row['managers_json'], true) ?: [];
+        $sites = json_decode($row['sites_json'], true) ?: [];
 
         $this->view('users/assignments', [
             'pageTitle' => 'Manager-Site Assignments',

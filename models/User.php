@@ -66,6 +66,40 @@ class User {
         ")->fetchAll();
     }
 
+    // Same result as getAll() + the User Management page's site/role dropdowns, in one round trip.
+    public function getAllWithDropdowns() {
+        $row = $this->db->query("
+            SELECT
+                (SELECT COALESCE(json_agg(u), '[]'::json) FROM (
+                    SELECT u.*, r.name as role_name,
+                           COALESCE(sa.site_names, '')   AS assigned_site_names,
+                           COALESCE(sa.site_ids_csv, '') AS assigned_site_ids_csv,
+                           COALESCE(sa.site_count, 0)    AS assigned_site_count
+                    FROM users u
+                    LEFT JOIN roles r ON u.role_id = r.id
+                    LEFT JOIN (
+                        SELECT usa.user_id,
+                               STRING_AGG(st.name, ', ' ORDER BY st.name)          AS site_names,
+                               STRING_AGG(usa.site_id::text, ',' ORDER BY st.name) AS site_ids_csv,
+                               COUNT(*) AS site_count
+                        FROM user_site_assignments usa
+                        JOIN sites st ON usa.site_id = st.id
+                        GROUP BY usa.user_id
+                    ) sa ON sa.user_id = u.id
+                    WHERE u.status != 'Deleted'
+                    ORDER BY u.id DESC
+                ) u) AS users_json,
+                (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name FROM sites WHERE is_active = TRUE ORDER BY name) x) AS sites_json,
+                (SELECT COALESCE(json_agg(x), '[]'::json) FROM (SELECT id, name FROM roles ORDER BY id) x) AS roles_json
+        ")->fetch();
+
+        return [
+            'users' => json_decode($row['users_json'], true) ?: [],
+            'sites' => json_decode($row['sites_json'], true) ?: [],
+            'roles' => json_decode($row['roles_json'], true) ?: [],
+        ];
+    }
+
     public function getById($id) {
         $stmt = $this->db->prepare("
             SELECT u.*, r.name as role_name,
@@ -168,14 +202,36 @@ class User {
 
     public function getManagers() {
         $stmt = $this->db->prepare("
-            SELECT u.*, r.name as role_name 
-            FROM users u 
-            JOIN roles r ON u.role_id = r.id 
+            SELECT u.*, r.name as role_name
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
             WHERE u.role_id = 2 AND u.status = 'Active'
             ORDER BY u.full_name ASC
         ");
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    // Same result as getManagers() + getAssignedSiteIds() per manager, in one round trip.
+    public function getManagersWithAssignedSites() {
+        $stmt = $this->db->prepare("
+            SELECT u.*, r.name as role_name,
+                COALESCE((
+                    SELECT json_agg(usa.site_id)
+                    FROM user_site_assignments usa WHERE usa.user_id = u.id
+                ), '[]'::json) AS assigned_site_ids_json
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.role_id = 2 AND u.status = 'Active'
+            ORDER BY u.full_name ASC
+        ");
+        $stmt->execute();
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$r) {
+            $r['assigned_site_ids'] = json_decode($r['assigned_site_ids_json'], true) ?: [];
+            unset($r['assigned_site_ids_json']);
+        }
+        return $rows;
     }
 
     public function saveAssignments($userId, $siteIds) {

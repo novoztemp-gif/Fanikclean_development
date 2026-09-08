@@ -21,25 +21,11 @@ class PayrollController extends Controller {
             $_SESSION['error'] = "Unauthorized site selection";
         }
 
-        $payrolls = $payrollModel->getAll($siteScope, $month, $clientId);
-        
-        $db = Database::connect();
-        
-        $clients = $db->query("SELECT id, company_name FROM clients ORDER BY company_name")->fetchAll();
-
-        if ($this->isAdmin()) {
-            $sites = $db->query("SELECT id, name, client_id FROM sites WHERE is_active = TRUE ORDER BY name")->fetchAll();
-        } else {
-            $assignedIds = $this->getAssignedSiteIds();
-            if (!empty($assignedIds)) {
-                $placeholders = implode(',', array_fill(0, count($assignedIds), '?'));
-                $stmt = $db->prepare("SELECT id, name, client_id FROM sites WHERE id IN ($placeholders) AND is_active = TRUE ORDER BY name");
-                $stmt->execute($assignedIds);
-                $sites = $stmt->fetchAll();
-            } else {
-                $sites = [];
-            }
-        }
+        $sitesDropdownIds = $this->isAdmin() ? null : $this->getAssignedSiteIds();
+        $data = $payrollModel->getAllWithDropdowns($siteScope, $month, $clientId, $sitesDropdownIds);
+        $payrolls = $data['payrolls'];
+        $clients = $data['clients'];
+        $sites = $data['sites'];
 
         $this->view('payroll/index', [
             'pageTitle' => 'Payroll Center',
