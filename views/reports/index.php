@@ -5,7 +5,7 @@
 
     <!-- Operational Reports -->
     <div class="form-section-title">Operational Reports</div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px;">
+    <div class="grid-3col">
         <div class="report-card" onclick="location.href='/attendance'">
             <div class="report-icon" style="background:var(--teal-bg); color:var(--teal);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -27,7 +27,7 @@
 
     <!-- Financial Reports -->
     <div class="form-section-title">Financial Reports</div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px;">
+    <div class="grid-3col">
         <div class="report-card" onclick="location.href='/financial'">
             <div class="report-icon" style="background:var(--blue-bg); color:var(--info);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -58,7 +58,7 @@
 
     <!-- Administrative Reports -->
     <div class="form-section-title">Administrative Reports</div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+    <div class="grid-3col">
         <div class="report-card" onclick="location.href='/audit'">
             <div class="report-icon" style="background:var(--red-bg); color:var(--red);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

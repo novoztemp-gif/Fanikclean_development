@@ -13,6 +13,14 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
 
+// ---- Mobile sidebar drawer ----
+function openSidebar()  { document.body.classList.add('sidebar-open'); }
+function closeSidebar() { document.body.classList.remove('sidebar-open'); }
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSidebar();
+});
+
 // ---- Toast Notifications ----
 let toastTimer;
 function toast(msg, type='success') {

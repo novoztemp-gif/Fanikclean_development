@@ -27,7 +27,7 @@
     </div>
 
     <!-- Row 2: Attendance Trend & Workforce -->
-    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin-bottom: 24px;">
+    <div class="grid-16-1">
         <div class="card">
             <div class="card-head">
                 <div class="card-title">Attendance — last 7 days</div>
@@ -68,7 +68,7 @@
     </div>
 
     <!-- Row 3: Attendance status & Sites overview -->
-    <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px;">
+    <div class="grid-1-14">
         <div class="card">
             <div class="card-head">
                 <div class="card-title">Attendance status <span class="c-secondary fw6" style="text-transform:none; font-size:11px;">(this month)</span></div>

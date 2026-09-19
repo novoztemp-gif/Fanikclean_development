@@ -196,14 +196,22 @@ if (strpos($navUri, 'workers') !== false || strpos($navUri, 'clients') !== false
   </div>
 </aside>
 
+<!-- Mobile-only: dims the page and closes the sidebar drawer on tap -->
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
 <!-- ============================================================ MAIN -->
 <div class="main">
   <div class="loadbar"></div>
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left">
-      <div class="page-bc" id="page-bc"><?= htmlspecialchars(strtoupper($navSection)) ?></div>
-      <div class="page-ttl" id="page-ttl"><?= htmlspecialchars($pageTitle ?? ucwords(str_replace(['/', '-', '_'], ' ', trim(strtok($navUri, '?'), '/')))) ?></div>
+      <button type="button" class="menu-toggle" id="menu-toggle" onclick="openSidebar()" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <div class="topbar-titles">
+        <div class="page-bc" id="page-bc"><?= htmlspecialchars(strtoupper($navSection)) ?></div>
+        <div class="page-ttl" id="page-ttl"><?= htmlspecialchars($pageTitle ?? ucwords(str_replace(['/', '-', '_'], ' ', trim(strtok($navUri, '?'), '/')))) ?></div>
+      </div>
     </div>
     <div class="topbar-right">
       <div class="user-menu" id="user-menu">
