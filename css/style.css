@@ -636,6 +636,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   box-shadow: var(--shadow-lg);
   animation: modalIn .18s ease;
   max-height: 90vh;
+  max-height: 90dvh; /* dvh tracks the browser's actual visible area on mobile, where
+    a shown/hidden address bar makes plain vh overshoot and bury sticky content below it */
   overflow-y: auto;
 }
 .modal-lg { max-width: 700px; }
@@ -651,7 +653,16 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   transition: background .14s;
 }
 .modal-close:hover { background: var(--border); }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+/* Sticky to .modal's own scroll region (not the page) -- so on a long form,
+   Save/Cancel stay reachable without hunting for them below the fold, most
+   of all on mobile where the modal itself is the only scrollable area. */
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  margin: 20px -26px -26px; padding: 16px 26px;
+  border-top: 1px solid var(--border);
+  position: sticky; bottom: -26px;
+  background: var(--card);
+}
 
 /* ===== TOAST ===== */
 #toast {

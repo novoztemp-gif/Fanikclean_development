@@ -88,7 +88,7 @@
       <form method="POST" action="/workers/create" id="worker-form" enctype="multipart/form-data">
         <input type="hidden" name="id" id="worker-id">
         
-        <div style="max-height: 70vh; overflow-y: auto; padding: 24px;">
+        <div style="padding: 24px;">
           <div class="form-section-title">Personal Information & Photo</div>
           <div class="form-grid mb24">
             <div class="form-group">
