@@ -33,7 +33,7 @@
                 <div class="card-title">Attendance — last 7 days</div>
                 <a href="/attendance/register" class="card-action">Full register &rarr;</a>
             </div>
-            <div style="display: flex; gap: 32px; margin-bottom: 20px;">
+            <div class="dash-stat-row">
                 <div>
                     <div class="fs11 fw7 c-secondary mb4 text-upper">Present <span class="c-secondary fw6" style="text-transform:none;">(this month)</span></div>
                     <div class="fs24 fw8 c-teal"><?= number_format($insights['attendance_summary']['present'] ?? 0) ?></div>
