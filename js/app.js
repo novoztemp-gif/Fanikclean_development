@@ -21,6 +21,29 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeSidebar();
 });
 
+// ---- Prevent double-submission ----
+// The DB is remote and every page here is a full POST -> redirect -> GET,
+// so a slow connection means real seconds with zero visual feedback. With
+// nothing telling the user their tap registered, a second tap (or a second
+// full form fill, in the worst reported case) fires the same create/update
+// again. Disabling the submit button(s) the instant the form actually goes
+// through -- i.e. after any onsubmit="" validation already ran and didn't
+// cancel it, since e.defaultPrevented reflects that by the time this fires --
+// closes that window app-wide, not just on one form.
+document.addEventListener('submit', function (e) {
+    if (e.defaultPrevented) return;
+    var form = e.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    form.querySelectorAll('button[type="submit"]').forEach(function (btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        if (btn.classList.contains('btn-primary')) {
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.innerHTML = 'Saving…';
+        }
+    });
+});
+
 // ---- Toast Notifications ----
 let toastTimer;
 function toast(msg, type='success') {
@@ -294,3 +317,56 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+// ---- Compress the worker photo client-side before upload ----
+// A raw phone-camera photo commonly runs 3-8MB. Over a slow mobile
+// connection that's minutes of upload with no feedback -- easily explaining
+// a manager giving up mid-upload and re-submitting the whole form. It would
+// also silently exceed the server's 2MB upload_max_filesize with no error
+// shown either way. Resizing to a sane max dimension and re-encoding as
+// JPEG client-side, before the network request even starts, fixes both.
+(function () {
+    var input = document.getElementById('worker-photo');
+    if (!input) return;
+    var form = document.getElementById('worker-form');
+    var MAX_DIMENSION = 1280;
+    var QUALITY = 0.75;
+    var MIN_SIZE_TO_BOTHER = 400 * 1024;
+
+    input.addEventListener('change', function () {
+        var file = input.files[0];
+        if (!file || file.type === 'image/gif' || !file.type.startsWith('image/') || file.size < MIN_SIZE_TO_BOTHER) return;
+
+        var submitBtns = form ? form.querySelectorAll('button[type="submit"]') : [];
+        var reenable = function () { submitBtns.forEach(function (b) { b.disabled = false; }); };
+        submitBtns.forEach(function (b) { b.disabled = true; });
+
+        var img = new Image();
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            img.onload = function () {
+                var w = img.width, h = img.height;
+                if (w > h && w > MAX_DIMENSION) { h = Math.round(h * MAX_DIMENSION / w); w = MAX_DIMENSION; }
+                else if (h >= w && h > MAX_DIMENSION) { w = Math.round(w * MAX_DIMENSION / h); h = MAX_DIMENSION; }
+
+                var canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+                canvas.toBlob(function (blob) {
+                    if (blob && blob.size < file.size) {
+                        var compressed = new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+                        var dt = new DataTransfer();
+                        dt.items.add(compressed);
+                        input.files = dt.files;
+                    }
+                    reenable();
+                }, 'image/jpeg', QUALITY);
+            };
+            img.onerror = reenable;
+            img.src = e.target.result;
+        };
+        reader.onerror = reenable;
+        reader.readAsDataURL(file);
+    });
+})();
