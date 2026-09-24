@@ -5,6 +5,48 @@ class ManagerAttendance {
     private $db;
     public function __construct() { $this->db = Database::connect(); }
 
+    // Same result as User::getManagers() + getByMonth() + getMonthlyPLCounts(),
+    // in one round trip (AttendanceController::managerAttendance() is admin-only,
+    // so no site scoping to fold in here).
+    public function getManagerAttendanceBundle($monthYear) {
+        $sql = "SELECT
+            (SELECT COALESCE(json_agg(m), '[]'::json) FROM (
+                SELECT u.*, r.name as role_name
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                WHERE u.role_id = 2 AND u.status = 'Active'
+                ORDER BY u.full_name ASC
+            ) m) AS managers_json,
+            (SELECT COALESCE(json_agg(h), '[]'::json) FROM (
+                SELECT ma.*, u.full_name as manager_name, u.email
+                FROM manager_attendance ma
+                JOIN users u ON ma.user_id = u.id
+                WHERE TO_CHAR(ma.attendance_date, 'YYYY-MM') = :my
+                ORDER BY ma.attendance_date DESC, u.full_name ASC
+            ) h) AS history_json,
+            (SELECT COALESCE(json_agg(p), '[]'::json) FROM (
+                SELECT user_id, COUNT(*) as count
+                FROM manager_attendance
+                WHERE status = 'pl' AND TO_CHAR(attendance_date, 'YYYY-MM') = :my
+                GROUP BY user_id
+            ) p) AS pl_counts_json
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['my' => $monthYear]);
+        $row = $stmt->fetch();
+
+        $plCounts = [];
+        foreach (json_decode($row['pl_counts_json'], true) ?: [] as $r) {
+            $plCounts[$r['user_id']] = $r['count'];
+        }
+
+        return [
+            'managers' => json_decode($row['managers_json'], true) ?: [],
+            'history' => json_decode($row['history_json'], true) ?: [],
+            'plCounts' => $plCounts,
+        ];
+    }
+
     public function getByMonth($monthYear) {
         // monthYear format: 2026-04
         $stmt = $this->db->prepare("

@@ -80,8 +80,12 @@ class Worker {
 
     public function getById($id) {
         $stmt = $this->db->prepare("
-            SELECT w.*, c.name as category_name, s.name as site_name 
-            FROM workers w 
+            SELECT w.*, c.name as category_name, s.name as site_name,
+                   COALESCE((
+                       SELECT json_agg(a.* ORDER BY a.issue_date DESC)
+                       FROM worker_assets a WHERE a.worker_id = w.id
+                   ), '[]'::json) AS assets_json
+            FROM workers w
             LEFT JOIN worker_categories c ON w.category_id = c.id
             LEFT JOIN sites s ON w.site_id = s.id
             WHERE w.id = :id
@@ -89,7 +93,8 @@ class Worker {
         $stmt->execute(['id' => $id]);
         $worker = $stmt->fetch();
         if ($worker) {
-            $worker['assets'] = $this->getAssets($id);
+            $worker['assets'] = json_decode($worker['assets_json'], true) ?: [];
+            unset($worker['assets_json']);
         }
         return $worker;
     }
