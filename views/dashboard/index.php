@@ -99,7 +99,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/js/chart.umd.min.js?v=<?= filemtime(__DIR__ . '/../../js/chart.umd.min.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('attendanceChart').getContext('2d');
