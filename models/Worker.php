@@ -50,7 +50,9 @@ class Worker {
         $workersJson = "'[]'::json";
         if (!$noAccess) {
             $workersJson = "(SELECT COALESCE(json_agg(w), '[]'::json) FROM (
-                SELECT wk.*, c.name as category_name, s.name as site_name
+                SELECT wk.*, c.name as category_name, s.name as site_name,
+                       EXISTS(SELECT 1 FROM attendance a WHERE a.worker_id = wk.id)
+                       OR EXISTS(SELECT 1 FROM payroll p WHERE p.worker_id = wk.id) AS has_history
                 FROM workers wk
                 LEFT JOIN worker_categories c ON wk.category_id = c.id
                 LEFT JOIN sites s ON wk.site_id = s.id
@@ -109,6 +111,27 @@ class Worker {
 
     public function restore($id) {
         $stmt = $this->db->prepare("UPDATE workers SET status = 'Active' WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    // True if this worker has any attendance or payroll on record. Permanent
+    // deletion is only offered/allowed when this is false -- attendance.worker_id
+    // and payroll.worker_id are both ON DELETE CASCADE, so deleting a worker who
+    // has history would silently wipe that history out too.
+    public function hasHistory($id) {
+        $stmt = $this->db->prepare("
+            SELECT EXISTS(SELECT 1 FROM attendance WHERE worker_id = :id)
+                OR EXISTS(SELECT 1 FROM payroll WHERE worker_id = :id2)
+        ");
+        $stmt->execute(['id' => $id, 'id2' => $id]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    // Permanent, irreversible removal of the worker row. Caller must have
+    // already confirmed hasHistory($id) is false -- this does not re-check,
+    // callers (WorkerController::permanentDelete) are expected to gate it.
+    public function hardDelete($id) {
+        $stmt = $this->db->prepare("DELETE FROM workers WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 

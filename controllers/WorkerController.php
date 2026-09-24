@@ -171,6 +171,41 @@ class WorkerController extends Controller {
         }
     }
 
+    public function permanentDelete() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            if (!$id) { $this->redirect('/workers'); return; }
+
+            $workerModel = new Worker();
+            $worker = $workerModel->getById($id);
+            if (!$worker) { $_SESSION['error'] = "Worker not found"; $this->redirect('/workers'); return; }
+            if (!$this->canAccessSite($worker['site_id'])) {
+                $_SESSION['error'] = "Access denied to this site scope";
+                $this->redirect('/workers');
+                return;
+            }
+            // Must already be soft-deleted, and re-checked here rather than
+            // trusting the button's own visibility -- attendance.worker_id and
+            // payroll.worker_id are ON DELETE CASCADE, so this is the one
+            // action in the app that can't be undone or preserve history.
+            if ($worker['status'] !== 'Removed') {
+                $_SESSION['error'] = "Remove the worker first before permanently deleting them";
+                $this->redirect('/workers');
+                return;
+            }
+            if ($workerModel->hasHistory($id)) {
+                $_SESSION['error'] = "Can't permanently delete " . $worker['full_name'] . " -- they have attendance or payroll history on record.";
+                $this->redirect('/workers');
+                return;
+            }
+
+            $workerModel->hardDelete($id);
+            $this->logAudit('Workers', "Permanently deleted worker #$id: " . $worker['full_name']);
+            $_SESSION['toast'] = "Worker permanently deleted";
+            $this->redirect('/workers');
+        }
+    }
+
     public function apiGetBySite() {
         $this->checkAuth();
         header('Content-Type: application/json');

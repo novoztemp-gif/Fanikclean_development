@@ -73,6 +73,12 @@
                     <input type="hidden" name="id" value="<?= $w['id'] ?>">
                     <button type="submit" class="btn btn-sm btn-primary">Restore</button>
                   </form>
+                  <?php if(empty($w['has_history'])): ?>
+                    <form method="POST" action="/workers/permanent-delete" style="display:contents;" onsubmit="return confirm('Permanently delete “<?= htmlspecialchars($w['full_name'], ENT_QUOTES) ?>”? This erases their profile completely and cannot be undone. (They have no attendance or payroll history, so nothing else is affected.)');">
+                      <input type="hidden" name="id" value="<?= $w['id'] ?>">
+                      <button type="submit" class="btn btn-sm btn-danger">Delete Permanently</button>
+                    </form>
+                  <?php endif; ?>
                 <?php else: ?>
                   <form method="POST" action="/workers/delete" style="display:contents;" onsubmit="return confirm('Remove “<?= htmlspecialchars($w['full_name'], ENT_QUOTES) ?>”? They will be hidden from new attendance, payroll and site assignment; their existing history is kept and nothing is erased. You can restore them any time.');">
                     <input type="hidden" name="id" value="<?= $w['id'] ?>">
