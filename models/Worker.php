@@ -94,6 +94,19 @@ class Worker {
         return $worker;
     }
 
+    // Soft delete: hides the worker from new selections (attendance, payroll,
+    // site assignment) but keeps their id -- and therefore all attendance,
+    // payroll and billing history that references it -- fully intact.
+    public function softDelete($id) {
+        $stmt = $this->db->prepare("UPDATE workers SET status = 'Removed' WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function restore($id) {
+        $stmt = $this->db->prepare("UPDATE workers SET status = 'Active' WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
     public function getAssets($workerId) {
         $stmt = $this->db->prepare("SELECT * FROM worker_assets WHERE worker_id = :wid ORDER BY issue_date DESC");
         $stmt->execute(['wid' => $workerId]);

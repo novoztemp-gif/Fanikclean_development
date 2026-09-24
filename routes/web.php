@@ -14,6 +14,8 @@ $router->get('/workers', 'WorkerController', 'index');
 $router->get('/workers/profile', 'WorkerController', 'profile');
 $router->post('/workers/create', 'WorkerController', 'create');
 $router->post('/workers/update', 'WorkerController', 'update');
+$router->post('/workers/delete', 'WorkerController', 'delete');
+$router->post('/workers/restore', 'WorkerController', 'restore');
 $router->post('/workers/assets/add', 'WorkerController', 'addAsset');
 $router->post('/workers/assets/delete', 'WorkerController', 'deleteAsset');
 $router->post('/workers/bulk/transfer', 'WorkerController', 'bulkTransfer');

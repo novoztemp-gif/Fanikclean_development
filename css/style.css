@@ -866,6 +866,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
      .sec-head action group) should wrap rather than force the page wider --
      .btn's white-space:nowrap means it can't shrink to fit otherwise. */
   .flex, .flex-center, .flex-between, .flex-end { flex-wrap: wrap; }
+  /* ...except inside a table cell: the table already scrolls horizontally
+     (.table-wrap), so an Actions cell's buttons should stay in one row
+     rather than wrapping into a much taller stack. */
+  td .flex, td .flex-center, td .flex-between, td .flex-end { flex-wrap: nowrap; }
 }
 
 @media (max-width: 480px) {

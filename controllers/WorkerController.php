@@ -86,14 +86,25 @@ class WorkerController extends Controller {
             if (!$id) { $this->redirect('/workers'); return; }
 
             $workerModel = new Worker();
-            
+            $existing = $workerModel->getById($id);
+            if (!$existing) { $_SESSION['error'] = "Worker not found"; $this->redirect('/workers'); return; }
+
+            $newSiteId = !empty($_POST['site_id']) ? $_POST['site_id'] : null;
+            // A manager may only edit workers at their own sites, and can't
+            // reassign one to a site outside their scope either.
+            if (!$this->canAccessSite($existing['site_id']) || !$this->canAccessSite($newSiteId)) {
+                $_SESSION['error'] = "Access denied to this site scope";
+                $this->redirect('/workers');
+                return;
+            }
+
             $data = [
                 'full_name' => $_POST['full_name'] ?? '',
                 'mobile' => $_POST['mobile'] ?? '',
                 'aadhaar' => $_POST['aadhaar'] ?? '',
                 'doj' => $_POST['doj'] ?? date('Y-m-d'),
                 'category_id' => $_POST['category_id'] ?? 4,
-                'site_id' => !empty($_POST['site_id']) ? $_POST['site_id'] : null,
+                'site_id' => $newSiteId,
                 'status' => $_POST['status'] ?? 'Active',
                 'esi_number' => $_POST['esi_number'] ?? '',
                 'pf_number' => $_POST['pf_number'] ?? '',
@@ -110,10 +121,52 @@ class WorkerController extends Controller {
             if ($photoPath) {
                 $data['photo_path'] = $photoPath;
             }
-            
+
             $workerModel->update($id, $data);
             $this->logAudit('Workers', "Updated worker #$id: " . $data['full_name']);
             $_SESSION['toast'] = "Worker profile updated";
+            $this->redirect('/workers');
+        }
+    }
+
+    public function delete() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            if (!$id) { $this->redirect('/workers'); return; }
+
+            $workerModel = new Worker();
+            $worker = $workerModel->getById($id);
+            if (!$worker) { $_SESSION['error'] = "Worker not found"; $this->redirect('/workers'); return; }
+            if (!$this->canAccessSite($worker['site_id'])) {
+                $_SESSION['error'] = "Access denied to this site scope";
+                $this->redirect('/workers');
+                return;
+            }
+
+            $workerModel->softDelete($id);
+            $this->logAudit('Workers', "Removed worker #$id: " . $worker['full_name']);
+            $_SESSION['toast'] = "Worker removed. Attendance, payroll and billing history is kept and nothing is erased.";
+            $this->redirect('/workers');
+        }
+    }
+
+    public function restore() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            if (!$id) { $this->redirect('/workers'); return; }
+
+            $workerModel = new Worker();
+            $worker = $workerModel->getById($id);
+            if (!$worker) { $_SESSION['error'] = "Worker not found"; $this->redirect('/workers'); return; }
+            if (!$this->canAccessSite($worker['site_id'])) {
+                $_SESSION['error'] = "Access denied to this site scope";
+                $this->redirect('/workers');
+                return;
+            }
+
+            $workerModel->restore($id);
+            $this->logAudit('Workers', "Restored worker #$id: " . $worker['full_name']);
+            $_SESSION['toast'] = "Worker restored";
             $this->redirect('/workers');
         }
     }

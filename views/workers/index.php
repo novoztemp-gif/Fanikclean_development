@@ -68,6 +68,19 @@
                 <button class="btn btn-sm" onclick='openEditWorkerModal(<?= json_encode($w) ?>)'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                 </button>
+                <?php if($w['status'] === 'Removed'): ?>
+                  <form method="POST" action="/workers/restore" style="display:contents;">
+                    <input type="hidden" name="id" value="<?= $w['id'] ?>">
+                    <button type="submit" class="btn btn-sm btn-primary">Restore</button>
+                  </form>
+                <?php else: ?>
+                  <form method="POST" action="/workers/delete" style="display:contents;" onsubmit="return confirm('Remove “<?= htmlspecialchars($w['full_name'], ENT_QUOTES) ?>”? They will be hidden from new attendance, payroll and site assignment; their existing history is kept and nothing is erased. You can restore them any time.');">
+                    <input type="hidden" name="id" value="<?= $w['id'] ?>">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </form>
+                <?php endif; ?>
               </div>
             </td>
           </tr>
