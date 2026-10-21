@@ -26,7 +26,7 @@ CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
     company_name VARCHAR(150) NOT NULL,
     contact_person VARCHAR(100),
-    mobile VARCHAR(15),
+    mobile VARCHAR(25),
     email VARCHAR(100),
     gstin VARCHAR(50),
     address TEXT,
@@ -52,11 +52,11 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     role_id INT REFERENCES roles(id),
     site_id INT REFERENCES sites(id) ON DELETE SET NULL, 
-    phone VARCHAR(15),
+    phone VARCHAR(25),
     
     -- Guardian Details
     guardian_name VARCHAR(100),
-    guardian_phone VARCHAR(15),
+    guardian_phone VARCHAR(25),
     guardian_place VARCHAR(150),
     
     status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive', 'Deleted')),
@@ -77,7 +77,7 @@ CREATE TABLE workers (
     id SERIAL PRIMARY KEY,
     worker_code VARCHAR(20) UNIQUE NOT NULL,
     full_name VARCHAR(100) NOT NULL,
-    mobile VARCHAR(15),
+    mobile VARCHAR(25),
     aadhaar VARCHAR(20),
     doj DATE,
     category_id INT REFERENCES worker_categories(id),
@@ -93,7 +93,7 @@ CREATE TABLE workers (
     
     -- Guardian Details
     guardian_name VARCHAR(100),
-    guardian_phone VARCHAR(15),
+    guardian_phone VARCHAR(25),
     guardian_place VARCHAR(150),
     
     -- Managed Assets (Legacy fields kept for compatibility)

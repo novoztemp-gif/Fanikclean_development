@@ -22,7 +22,7 @@ class ClientController extends Controller {
             $data = [
                 'company_name' => $_POST['company_name'] ?? '',
                 'contact_person' => $_POST['contact_person'] ?? '',
-                'mobile' => $_POST['mobile'] ?? '',
+                'mobile' => $this->capStr($_POST['mobile'] ?? ''),
                 'email' => $_POST['email'] ?? '',
                 'gstin' => $_POST['gstin'] ?? '',
                 'address' => $_POST['address'] ?? '',

@@ -77,6 +77,19 @@ class Controller {
     }
 
     /**
+     * Trim and hard-cap a free-text field before it reaches a column with a
+     * fixed VARCHAR width -- a value longer than the column throws an
+     * uncaught PDOException (production hit this for real with a phone
+     * number over 15 chars), and with display_errors off that crashes the
+     * whole request with no useful message. Truncating here means an
+     * over-long paste just gets shortened instead of crashing the page.
+     */
+    protected function capStr($value, $max = 25) {
+        $value = trim((string) $value);
+        return $value === '' ? $value : mb_substr($value, 0, $max);
+    }
+
+    /**
      * Record an entry in audit_logs. Best-effort: a logging failure (bad
      * connection, missing table, etc.) must never break the primary action,
      * so everything is wrapped in try/catch. $module drives the colour badge

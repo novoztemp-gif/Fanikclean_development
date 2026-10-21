@@ -55,7 +55,7 @@ class WorkerController extends Controller {
 
             $data = [
                 'full_name' => $_POST['full_name'] ?? '',
-                'mobile' => $_POST['mobile'] ?? '',
+                'mobile' => $this->capStr($_POST['mobile'] ?? ''),
                 'aadhaar' => $_POST['aadhaar'] ?? '',
                 'doj' => $_POST['doj'] ?? date('Y-m-d'),
                 'category_id' => $_POST['category_id'] ?? 4,
@@ -68,7 +68,7 @@ class WorkerController extends Controller {
                 'uniform_issue_date' => $_POST['uniform_issue_date'] ?? null,
                 'uniform_details' => $_POST['uniform_details'] ?? '',
                 'guardian_name' => $_POST['guardian_name'] ?? '',
-                'guardian_phone' => $_POST['guardian_phone'] ?? '',
+                'guardian_phone' => $this->capStr($_POST['guardian_phone'] ?? ''),
                 'guardian_place' => $_POST['guardian_place'] ?? '',
                 'photo_path' => $photoPath
             ];
@@ -100,7 +100,7 @@ class WorkerController extends Controller {
 
             $data = [
                 'full_name' => $_POST['full_name'] ?? '',
-                'mobile' => $_POST['mobile'] ?? '',
+                'mobile' => $this->capStr($_POST['mobile'] ?? ''),
                 'aadhaar' => $_POST['aadhaar'] ?? '',
                 'doj' => $_POST['doj'] ?? date('Y-m-d'),
                 'category_id' => $_POST['category_id'] ?? 4,
@@ -113,7 +113,7 @@ class WorkerController extends Controller {
                 'uniform_issue_date' => $_POST['uniform_issue_date'] ?? null,
                 'uniform_details' => $_POST['uniform_details'] ?? '',
                 'guardian_name' => $_POST['guardian_name'] ?? '',
-                'guardian_phone' => $_POST['guardian_phone'] ?? '',
+                'guardian_phone' => $this->capStr($_POST['guardian_phone'] ?? ''),
                 'guardian_place' => $_POST['guardian_place'] ?? ''
             ];
 

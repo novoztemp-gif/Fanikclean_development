@@ -51,7 +51,7 @@ class UserController extends Controller {
             
             $guardianData = [
                 'guardian_name' => $_POST['guardian_name'] ?? '',
-                'guardian_phone' => $_POST['guardian_phone'] ?? '',
+                'guardian_phone' => $this->capStr($_POST['guardian_phone'] ?? ''),
                 'guardian_place' => $_POST['guardian_place'] ?? ''
             ];
             
@@ -94,7 +94,7 @@ class UserController extends Controller {
                 'email' => $email,
                 'role_id' => $_POST['role_id'],
                 'guardian_name' => $_POST['guardian_name'] ?? '',
-                'guardian_phone' => $_POST['guardian_phone'] ?? '',
+                'guardian_phone' => $this->capStr($_POST['guardian_phone'] ?? ''),
                 'guardian_place' => $_POST['guardian_place'] ?? ''
             ];
 
