@@ -60,12 +60,12 @@
               <tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">No active workers found for this scope.</td></tr>
             <?php else: ?>
               <?php
-                // No separate "Absent" status — Off Duty is used instead.
                 $statusLabels = [
                   'p'   => 'Present (P)',
                   'off' => 'Off Duty (Off)',
                   'h'   => 'Half-Day (H)',
                   'pl'  => 'Paid Leave (PL)',
+                  'a'   => 'Leave',
                   'sd'  => 'Special Duty (SD)',
                 ];
                 // [background, text] per status — applied to each <option> so the open
@@ -75,6 +75,7 @@
                   'off' => ['#FBEDEA', '#8C3324'], // red
                   'h'   => ['#FBF1E0', '#7A5310'], // amber
                   'pl'  => ['#EAF1F8', '#2E5478'], // blue
+                  'a'   => ['#EEF0FA', '#3A3D74'], // indigo
                   'sd'  => ['#F1EEF7', '#4A3F72'], // purple
                 ];
               ?>
@@ -240,6 +241,7 @@ function reloadFilter() {
 .att-select.off { background: #FBEDEA !important; color: #8C3324 !important; border-color: #E9C4BA !important; }
 .att-select.h   { background: #FBF1E0 !important; color: #7A5310 !important; border-color: #EBD2A0 !important; }
 .att-select.pl  { background: #EAF1F8 !important; color: #2E5478 !important; border-color: #B9D2E8 !important; }
+.att-select.a   { background: #EEF0FA !important; color: #3A3D74 !important; border-color: #C7CCEE !important; }
 .att-select.sd  { background: #F1EEF7 !important; color: #4A3F72 !important; border-color: #D2C9E8 !important; }
 
 .cal-count { min-width: 22px; justify-content: center; }

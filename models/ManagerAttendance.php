@@ -127,11 +127,11 @@ class ManagerAttendance {
     /**
      * Read-only monthly register for manager attendance: one row per manager
      * (role 2) with a day-indexed map of their recorded status + per-manager
-     * totals, for a managers × day matrix. Manager statuses have no Absent/OT.
+     * totals, for a managers × day matrix. Manager statuses have no OT.
      *
      * Each row: [ id, full_name, email,
      *   days   => [ dayInt => ['status'=>, 'note'=>], ... ],
-     *   totals => ['p'=>,'off'=>,'h'=>,'pl'=>,'sd'=>] ]
+     *   totals => ['p'=>,'off'=>,'h'=>,'pl'=>,'a'=>,'sd'=>] ]
      */
     public function getMonthlyRegister($monthYear) {
         $managers = $this->db->query("
@@ -156,7 +156,7 @@ class ManagerAttendance {
         $out = [];
         foreach ($managers as $m) {
             $days = $byUser[$m['id']] ?? [];
-            $totals = ['p' => 0, 'off' => 0, 'h' => 0, 'pl' => 0, 'sd' => 0];
+            $totals = ['p' => 0, 'off' => 0, 'h' => 0, 'pl' => 0, 'a' => 0, 'sd' => 0];
             foreach ($days as $d) {
                 if (isset($totals[$d['status']])) { $totals[$d['status']]++; }
             }

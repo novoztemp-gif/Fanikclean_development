@@ -3,15 +3,16 @@
 // Data from AttendanceController::managerRegister() -> ManagerAttendance::getMonthlyRegister().
 $daysInMonth = (int)date('t', strtotime($month . '-01'));
 
-// Manager statuses (no Absent, no OT): code -> [short label, background, text].
+// Manager statuses (no OT): code -> [short label, background, text].
 $codeMeta = [
     'p'   => ['P',   '#E7F1EC', '#2F6B4F'],
     'h'   => ['H',   '#FBF1E0', '#7A5310'],
     'off' => ['Off', '#EEEFF0', '#52565B'],
     'pl'  => ['PL',  '#EAF1F8', '#2E5478'],
+    'a'   => ['LV',  '#EEF0FA', '#3A3D74'],
     'sd'  => ['SD',  '#F1EEF7', '#4A3F72'],
 ];
-$codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','sd'=>'Special Duty'];
+$codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','a'=>'Leave','sd'=>'Special Duty'];
 ?>
 <div class="panel active">
   <!-- Filter Bar -->
@@ -71,6 +72,7 @@ $codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave'
               <th class="reg-tot" title="Half-Day">H</th>
               <th class="reg-tot" title="Off Duty">Off</th>
               <th class="reg-tot" title="Paid Leave">PL</th>
+              <th class="reg-tot" title="Leave">LV</th>
               <th class="reg-tot" title="Special Duty">SD</th>
             </tr>
           </thead>
@@ -99,6 +101,7 @@ $codeName = ['p'=>'Present','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave'
               <td class="reg-tot fw7" style="color:#7A5310;"><?= $r['totals']['h'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#52565B;"><?= $r['totals']['off'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#2E5478;"><?= $r['totals']['pl'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#3A3D74;"><?= $r['totals']['a'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#4A3F72;"><?= $r['totals']['sd'] ?: '' ?></td>
             </tr>
             <?php endforeach; ?>

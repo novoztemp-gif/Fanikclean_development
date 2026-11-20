@@ -58,7 +58,7 @@ class AttendanceController extends Controller {
 
     /**
      * Downloads the same monthly register as a proper .xlsx workbook —
-     * one column per calendar day plus the P/Off/H/PL/SD/OT totals, exactly
+     * one column per calendar day plus the P/Off/H/PL/LV/SD/OT totals, exactly
      * mirroring what's on screen at /attendance/register.
      */
     public function exportRegister() {
@@ -75,7 +75,7 @@ class AttendanceController extends Controller {
         $rows = $attModel->getMonthlyRegister($month, $scopeSiteIds, $filterSiteId);
 
         $daysInMonth = (int)date('t', strtotime($month . '-01'));
-        $codeLabel = ['p' => 'P', 'off' => 'Off', 'h' => 'H', 'pl' => 'PL', 'sd' => 'SD'];
+        $codeLabel = ['p' => 'P', 'off' => 'Off', 'h' => 'H', 'pl' => 'PL', 'a' => 'LV', 'sd' => 'SD'];
 
         $headers = ['Worker Name', 'Worker Code', 'Category', 'Site'];
         $colWidths = [22, 12, 14, 20];
@@ -83,7 +83,7 @@ class AttendanceController extends Controller {
             $headers[] = date('d', strtotime(sprintf('%s-%02d', $month, $d)));
             $colWidths[] = 4;
         }
-        foreach (['Present', 'Off Duty', 'Half-Day', 'Paid Leave', 'Special Duty', 'OT Hours'] as $totalLabel) {
+        foreach (['Present', 'Off Duty', 'Half-Day', 'Paid Leave', 'Leave', 'Special Duty', 'OT Hours'] as $totalLabel) {
             $headers[] = $totalLabel;
             $colWidths[] = 11;
         }
@@ -104,6 +104,7 @@ class AttendanceController extends Controller {
             $line[] = $r['totals']['off'] ?: 0;
             $line[] = $r['totals']['h'] ?: 0;
             $line[] = $r['totals']['pl'] ?: 0;
+            $line[] = $r['totals']['a'] ?: 0;
             $line[] = $r['totals']['sd'] ?: 0;
             $line[] = $r['totals']['ot'] ?: 0;
             $data[] = $line;

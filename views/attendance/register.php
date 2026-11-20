@@ -5,12 +5,12 @@ $daysInMonth = (int)date('t', strtotime($month . '-01'));
 $firstDow    = (int)date('N', strtotime($month . '-01')); // 1=Mon .. 7=Sun (unused directly, kept for clarity)
 
 // Status code -> [short label, background, text colour]. Mirrors the marking grid.
-// No "Absent" status — Off Duty is used instead.
 $codeMeta = [
     'p'   => ['P',   '#E7F1EC', '#2F6B4F'],
     'off' => ['Off', '#FBEDEA', '#8C3324'],
     'h'   => ['H',   '#FBF1E0', '#7A5310'],
     'pl'  => ['PL',  '#EAF1F8', '#2E5478'],
+    'a'   => ['LV',  '#EEF0FA', '#3A3D74'],
     'sd'  => ['SD',  '#F1EEF7', '#4A3F72'],
 ];
 ?>
@@ -57,7 +57,7 @@ $codeMeta = [
         <?php foreach($codeMeta as $c => $m): ?>
           <span class="chip" style="background: <?= $m[1] ?>; color: <?= $m[2] ?>; font-weight:700;"><?= $m[0] ?></span>
           <span class="fs11 c-secondary" style="margin-left:-8px;">
-            <?= ['p'=>'Present','a'=>'Absent','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','sd'=>'Special Duty'][$c] ?>
+            <?= ['p'=>'Present','a'=>'Leave','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','sd'=>'Special Duty'][$c] ?>
           </span>
         <?php endforeach; ?>
       </div>
@@ -91,6 +91,7 @@ $codeMeta = [
               <th class="reg-tot" title="Off Duty">Off</th>
               <th class="reg-tot" title="Half-Day">H</th>
               <th class="reg-tot" title="Paid Leave">PL</th>
+              <th class="reg-tot" title="Leave">LV</th>
               <th class="reg-tot" title="Special Duty">SD</th>
               <th class="reg-tot" title="Overtime hours">OT</th>
             </tr>
@@ -109,7 +110,7 @@ $codeMeta = [
                 if ($cell && isset($codeMeta[$cell['status']])):
                   $m = $codeMeta[$cell['status']];
                   $tip = date('D, d M', strtotime(sprintf('%s-%02d', $month, $d))) . ' — ' .
-                         ['p'=>'Present','a'=>'Absent','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','sd'=>'Special Duty'][$cell['status']];
+                         ['p'=>'Present','a'=>'Leave','h'=>'Half-Day','off'=>'Off Duty','pl'=>'Paid Leave','sd'=>'Special Duty'][$cell['status']];
                   if ((float)($cell['ot_hours'] ?? 0) > 0) { $tip .= ' · OT ' . rtrim(rtrim((string)$cell['ot_hours'], '0'), '.') . 'h'; }
                   if (!empty($cell['note'])) { $tip .= ' · ' . $cell['note']; }
               ?>
@@ -122,6 +123,7 @@ $codeMeta = [
               <td class="reg-tot fw7" style="color:#8C3324;"><?= $r['totals']['off'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#7A5310;"><?= $r['totals']['h'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#2E5478;"><?= $r['totals']['pl'] ?: '' ?></td>
+              <td class="reg-tot fw7" style="color:#3A3D74;"><?= $r['totals']['a'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#4A3F72;"><?= $r['totals']['sd'] ?: '' ?></td>
               <td class="reg-tot fw7" style="color:#6B5127;"><?= $r['totals']['ot'] ? rtrim(rtrim(number_format($r['totals']['ot'], 1), '0'), '.') : '' ?></td>
             </tr>

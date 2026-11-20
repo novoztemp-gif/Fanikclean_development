@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(attStatusCanvas.getContext('2d'), {
             type: 'pie',
             data: {
-                labels: ['Present', 'Absent', 'Half-Day', 'Off Duty'],
+                labels: ['Present', 'Leave', 'Half-Day', 'Off Duty'],
                 datasets: [{
                     data: [
                         parseInt(s.present || 0, 10),
