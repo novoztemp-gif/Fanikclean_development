@@ -62,6 +62,7 @@
                     <?php endif; ?>
                     <option value="a" style="background:#EEF0FA; color:#3A3D74;" <?= $status == 'a' ? 'selected' : '' ?>>Leave</option>
                     <option value="sd" style="background:#F1EEF7; color:#4A3F72;" <?= $status == 'sd' ? 'selected' : '' ?>>Special Duty (SD)</option>
+                    <option value="clear" style="background:#F3F3F2; color:#6B6F76;" <?= $status == 'clear' ? 'selected' : '' ?>>&ndash; Not Marked (Delete)</option>
                   </select>
                   <button type="button" class="btn btn-sm btn-icon cal-btn" title="Pick days to apply this status" onclick="openCalendar('<?= $m['id'] ?>', this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -89,6 +90,7 @@
           <span class="flex items-center gap4"><span class="badge b-blue" style="width:12px; height:12px; border-radius:2px; padding:0;"></span> Paid Leave</span>
           <span class="flex items-center gap4"><span class="badge b-indigo" style="width:12px; height:12px; border-radius:2px; padding:0;"></span> Leave</span>
           <span class="flex items-center gap4"><span class="badge b-purple" style="width:12px; height:12px; border-radius:2px; padding:0;"></span> Special Duty (2x)</span>
+          <span class="flex items-center gap4"><span class="badge" style="width:12px; height:12px; border-radius:2px; padding:0; background:#F3F3F2; border:1px solid #D7D9DC;"></span> Not Marked (Delete)</span>
       </div>
     </div>
   </form>
@@ -208,6 +210,7 @@ function reloadDate(value) {
 .att-select.pl  { background: #EAF1F8 !important; color: #2E5478 !important; border-color: #B9D2E8 !important; }
 .att-select.a   { background: #EEF0FA !important; color: #3A3D74 !important; border-color: #C7CCEE !important; }
 .att-select.sd  { background: #F1EEF7 !important; color: #4A3F72 !important; border-color: #D2C9E8 !important; }
+.att-select.clear { background: #F3F3F2 !important; color: #6B6F76 !important; border-color: #D7D9DC !important; }
 
 .cal-count { min-width: 22px; justify-content: center; }
 .cal-popup {

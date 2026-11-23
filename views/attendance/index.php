@@ -67,6 +67,7 @@
                   'pl'  => 'Paid Leave (PL)',
                   'a'   => 'Leave',
                   'sd'  => 'Special Duty (SD)',
+                  'clear' => '– Not Marked (Delete)',
                 ];
                 // [background, text] per status — applied to each <option> so the open
                 // dropdown shows every status in its own colour (not all one tint).
@@ -77,6 +78,7 @@
                   'pl'  => ['#EAF1F8', '#2E5478'], // blue
                   'a'   => ['#EEF0FA', '#3A3D74'], // indigo
                   'sd'  => ['#F1EEF7', '#4A3F72'], // purple
+                  'clear' => ['#F3F3F2', '#6B6F76'], // grey
                 ];
               ?>
               <?php foreach ($workers as $w): ?>
@@ -243,6 +245,7 @@ function reloadFilter() {
 .att-select.pl  { background: #EAF1F8 !important; color: #2E5478 !important; border-color: #B9D2E8 !important; }
 .att-select.a   { background: #EEF0FA !important; color: #3A3D74 !important; border-color: #C7CCEE !important; }
 .att-select.sd  { background: #F1EEF7 !important; color: #4A3F72 !important; border-color: #D2C9E8 !important; }
+.att-select.clear { background: #F3F3F2 !important; color: #6B6F76 !important; border-color: #D7D9DC !important; }
 
 .cal-count { min-width: 22px; justify-content: center; }
 .cal-popup {

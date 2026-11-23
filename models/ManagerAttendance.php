@@ -83,7 +83,7 @@ class ManagerAttendance {
             return false;
         }
 
-        $valid = ['p', 'off', 'h', 'pl', 'sd'];
+        $valid = ['p', 'off', 'h', 'pl', 'a', 'sd'];
         $saved = 0;
 
         $this->db->beginTransaction();
@@ -94,10 +94,13 @@ class ManagerAttendance {
                 ON CONFLICT (user_id, attendance_date)
                 DO UPDATE SET status = EXCLUDED.status, note = EXCLUDED.note, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP
             ");
+            $delStmt = $this->db->prepare("DELETE FROM manager_attendance WHERE user_id = :uid AND attendance_date = :adate");
 
             foreach ($records as $userId => $rec) {
                 $status = $rec['status'] ?? '';
-                if (!in_array($status, $valid)) { continue; }
+                // 'clear' isn't a real status — it removes the day's record so the
+                // register shows it as not marked ("-") again, instead of writing one.
+                if ($status !== 'clear' && !in_array($status, $valid)) { continue; }
 
                 $note = isset($rec['note']) ? trim($rec['note']) : '';
                 $dates = isset($rec['dates']) ? array_filter(explode(',', $rec['dates'])) : [];
@@ -107,13 +110,17 @@ class ManagerAttendance {
                     $p = explode('-', $dt);
                     if (!checkdate((int)$p[1], (int)$p[2], (int)$p[0])) { continue; }
 
-                    $stmt->execute([
-                        'uid' => $userId,
-                        'adate' => $dt,
-                        'status' => $status,
-                        'note' => ($note === '' ? null : $note),
-                        'upby' => $adminUserId
-                    ]);
+                    if ($status === 'clear') {
+                        $delStmt->execute(['uid' => $userId, 'adate' => $dt]);
+                    } else {
+                        $stmt->execute([
+                            'uid' => $userId,
+                            'adate' => $dt,
+                            'status' => $status,
+                            'note' => ($note === '' ? null : $note),
+                            'upby' => $adminUserId
+                        ]);
+                    }
                     $saved++;
                 }
             }

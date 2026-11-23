@@ -264,9 +264,13 @@ class Attendance {
                 ON CONFLICT (worker_id, attendance_date)
                 DO UPDATE SET status = EXCLUDED.status, ot_hours = EXCLUDED.ot_hours, note = EXCLUDED.note, site_id = EXCLUDED.site_id, updated_by = EXCLUDED.updated_by
             ");
+            $delStmt = $this->db->prepare("DELETE FROM attendance WHERE worker_id = :wid AND attendance_date = :dt");
+
             foreach ($records as $workerId => $rec) {
                 $status = $rec['status'] ?? '';
-                if (!in_array($status, $valid)) { continue; }
+                // 'clear' isn't a real status — it removes the day's record so the
+                // register shows it as not marked ("-") again, instead of writing one.
+                if ($status !== 'clear' && !in_array($status, $valid)) { continue; }
 
                 $siteId = $siteMap[$workerId] ?? null;
                 if (!$siteId) { continue; } // unassigned worker — cannot record site-based attendance
@@ -282,11 +286,15 @@ class Attendance {
                     $p = explode('-', $dt);
                     if (!checkdate((int)$p[1], (int)$p[2], (int)$p[0])) { continue; }
 
-                    $stmt->execute([
-                        'wid' => $workerId, 'sid' => $siteId, 'dt' => $dt,
-                        'st' => $status, 'ot' => $ot,
-                        'nt' => ($note === '' ? null : $note), 'usr' => $userId
-                    ]);
+                    if ($status === 'clear') {
+                        $delStmt->execute(['wid' => $workerId, 'dt' => $dt]);
+                    } else {
+                        $stmt->execute([
+                            'wid' => $workerId, 'sid' => $siteId, 'dt' => $dt,
+                            'st' => $status, 'ot' => $ot,
+                            'nt' => ($note === '' ? null : $note), 'usr' => $userId
+                        ]);
+                    }
                     $saved++;
                 }
             }
